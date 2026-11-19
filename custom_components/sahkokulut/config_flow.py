@@ -1,4 +1,4 @@
-"""Config flow for Sähkökulut integration with full provider & solar auto-discovery."""
+"""Config flow for Sähkökulut integration with full provider, fuse size & solar auto-discovery."""
 from __future__ import annotations
 
 from typing import Any
@@ -20,6 +20,8 @@ from .const import (
     CONF_ENERGY_MONTHLY,
     CONF_ENERGY_SENSOR,
     CONF_FIXED_PRICE,
+    CONF_FUSE_SIZE,
+    CONF_INCLUDE_MONTHLY_FEES,
     CONF_MARGIN,
     CONF_SATURDAY_WINTER,
     CONF_SOLAR_DEDUCT_FROM_TOTAL,
@@ -60,6 +62,14 @@ KNOWN_PROVIDERS = {
     "caruna": {"name": "Caruna", "dso": "caruna", "delayed": True},
     "helen": {"name": "Helen / Oma Helen", "dso": "helen", "delayed": True},
     "alva": {"name": "Alva Sähköverkko", "dso": "alva", "delayed": True},
+    "vantaa": {"name": "Vantaan Energia", "dso": "vantaan_energia", "delayed": True},
+    "turku": {"name": "Turku Energia", "dso": "turku_energia", "delayed": True},
+    "oulu": {"name": "Oulun Energia", "dso": "oulun_energia", "delayed": True},
+    "tampere": {"name": "Tampereen Energia", "dso": "tampereen_energia", "delayed": True},
+    "savon_voima": {"name": "Savon Voima", "dso": "savon_voima", "delayed": True},
+    "kymenlaakso": {"name": "Kymenlaakson Sähköverkko", "dso": "kymenlaakson_sahkoverkko", "delayed": True},
+    "pks": {"name": "PKS Sähkönsiirto", "dso": "pks", "delayed": True},
+    "vaasa": {"name": "Vaasan Sähköverkko", "dso": "vaasan_sahkoverkko", "delayed": True},
     "fortum": {"name": "Fortum", "dso": None, "delayed": True},
     "fingrid": {"name": "Fingrid Datahub", "dso": None, "delayed": True},
     "datahub": {"name": "Fingrid Datahub", "dso": None, "delayed": True},
@@ -68,6 +78,17 @@ KNOWN_PROVIDERS = {
 KNOWN_SPOT_KEYWORDS = ("nordpool", "entsoe", "sahkon_hinta_nyt", "spot", "porssi")
 TRANSFER_KEYWORDS = ("siirto", "transfer", "distribution", "verkko")
 SOLAR_KEYWORDS = ("solar", "aurinko", "tuotto", "export", "myynti", "return", "nimikkopaneeli")
+
+
+def _build_fuse_options(preset: dict[str, Any]) -> list[dict[str, str]]:
+    """Luo sulakekokojen valintalista tariffs.json-tiedoista."""
+    fees: dict[str, float] = preset.get("monthly_fees", {})
+    options = [
+        {"value": fuse, "label": f"{fuse} ({fee:.2f} €/kk)"}
+        for fuse, fee in fees.items()
+    ]
+    options.append({"value": "custom", "label": "Muu sulakekoko (käytä alla olevaa €/kk-kenttää)"})
+    return options
 
 
 def discover_electricity_entities(hass: HomeAssistant) -> dict[str, Any]:
@@ -104,7 +125,6 @@ def discover_electricity_entities(hass: HomeAssistant) -> dict[str, Any]:
         if matched_provider and matched_provider["dso"] and not detected_dso_hint:
             detected_dso_hint = matched_provider["dso"]
 
-        # 1. Kulutus- ja aurinkotuottomittarit (kWh)
         if device_class == SensorDeviceClass.ENERGY or unit == "kwh":
             provider_name = matched_provider["name"] if matched_provider else None
             is_delayed = matched_provider["delayed"] if matched_provider else False
@@ -123,7 +143,6 @@ def discover_electricity_entities(hass: HomeAssistant) -> dict[str, Any]:
             else:
                 discovered_energy.append(item)
 
-        # 2. Hintasensorit (snt/kWh, c/kWh, €/kWh)
         is_price_unit = any(u in unit for u in ("snt/kwh", "c/kwh", "eur/kwh", "€/kwh"))
         if is_price_unit:
             is_transfer = any(k in eid_lower or k in friendly_name.lower() for k in TRANSFER_KEYWORDS)
@@ -348,8 +367,15 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(step_id="manual_setup", data_schema=schema)
 
     async def async_step_transfer(self, user_input: dict[str, Any] | None = None):
-        """Vaihe 2: Siirtohinnat (esitäytettynä valitun verkkoyhtiön mukaan)."""
+        """Vaihe 2: Siirtohinnat ja pääsulakekoko (esitäytettynä valitun verkkoyhtiön mukaan)."""
+        dso_key = self._data.get(CONF_DSO_PRODUCT, "manual")
+        preset = self._tariffs.get(dso_key, {})
+
         if user_input is not None:
+            fuse_choice = user_input.get(CONF_FUSE_SIZE)
+            monthly_fees = preset.get("monthly_fees", {})
+            if fuse_choice and fuse_choice in monthly_fees:
+                user_input[CONF_TRANSFER_MONTHLY] = float(monthly_fees[fuse_choice])
             self._data.update(user_input)
             if self._data[CONF_CALC_MODE] == MODE_TOTAL:
                 return await self.async_step_energy()
@@ -357,17 +383,19 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return await self.async_step_solar()
             return self.async_create_entry(title="Sähkökulut (Siirto)", data=self._data)
 
-        dso_key = self._data.get(CONF_DSO_PRODUCT, "manual")
-        preset = self._tariffs.get(dso_key, {})
-
         if self._data.get(CONF_TRANSFER_SENSOR):
-            schema = vol.Schema(
-                {
-                    vol.Required(CONF_ELECTRICITY_TAX, default=DEFAULT_TAX): vol.Coerce(float),
-                    vol.Optional(CONF_TRANSFER_MONTHLY, default=preset.get("transfer_monthly", 0.0)): vol.Coerce(float),
-                }
-            )
-            return self.async_show_form(step_id="transfer", data_schema=schema)
+            fields_ext: dict[Any, Any] = {
+                vol.Required(CONF_ELECTRICITY_TAX, default=DEFAULT_TAX): vol.Coerce(float),
+            }
+            if preset.get("monthly_fees"):
+                fuse_opts = _build_fuse_options(preset)
+                default_fuse = "3x25A" if "3x25A" in preset["monthly_fees"] else fuse_opts[0]["value"]
+                fields_ext[vol.Optional(CONF_FUSE_SIZE, default=default_fuse)] = selector.SelectSelector(
+                    selector.SelectSelectorConfig(options=fuse_opts, mode=selector.SelectSelectorMode.DROPDOWN)
+                )
+            fields_ext[vol.Optional(CONF_TRANSFER_MONTHLY, default=preset.get("transfer_monthly", 0.0))] = vol.Coerce(float)
+            fields_ext[vol.Optional(CONF_INCLUDE_MONTHLY_FEES, default=True)] = bool
+            return self.async_show_form(step_id="transfer", data_schema=vol.Schema(fields_ext))
 
         tariff_type = preset.get("tariff_type", TARIFF_GENERAL)
         fields: dict[Any, Any] = {
@@ -391,9 +419,19 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             vol.Optional(CONF_SATURDAY_WINTER, default=preset.get("saturday_winter", True)): bool,
             vol.Required(CONF_ELECTRICITY_TAX, default=DEFAULT_TAX): vol.Coerce(float),
-            vol.Optional(CONF_TRANSFER_MONTHLY, default=preset.get("transfer_monthly", 0.0)): vol.Coerce(float),
-            vol.Optional(CONF_AUTO_UPDATE_TARIFF, default=(dso_key != "manual")): bool,
         }
+
+        if preset.get("monthly_fees"):
+            fuse_opts = _build_fuse_options(preset)
+            default_fuse = "3x25A" if "3x25A" in preset["monthly_fees"] else fuse_opts[0]["value"]
+            fields[vol.Optional(CONF_FUSE_SIZE, default=default_fuse)] = selector.SelectSelector(
+                selector.SelectSelectorConfig(options=fuse_opts, mode=selector.SelectSelectorMode.DROPDOWN)
+            )
+
+        fields[vol.Optional(CONF_TRANSFER_MONTHLY, default=preset.get("transfer_monthly", 0.0))] = vol.Coerce(float)
+        fields[vol.Optional(CONF_INCLUDE_MONTHLY_FEES, default=True)] = bool
+        fields[vol.Optional(CONF_AUTO_UPDATE_TARIFF, default=(dso_key != "manual"))] = bool
+
         return self.async_show_form(step_id="transfer", data_schema=vol.Schema(fields))
 
     async def async_step_energy(self, user_input: dict[str, Any] | None = None):
@@ -491,6 +529,15 @@ class SahkokulutOptionsFlowHandler(config_entries.OptionsFlow):
             vol.Optional(
                 CONF_TRANSFER_NIGHT, default=current.get(CONF_TRANSFER_NIGHT, 2.50)
             ): vol.Coerce(float),
+            vol.Optional(
+                CONF_TRANSFER_MONTHLY, default=current.get(CONF_TRANSFER_MONTHLY, 0.0)
+            ): vol.Coerce(float),
+            vol.Optional(
+                CONF_ENERGY_MONTHLY, default=current.get(CONF_ENERGY_MONTHLY, 0.0)
+            ): vol.Coerce(float),
+            vol.Optional(
+                CONF_INCLUDE_MONTHLY_FEES, default=current.get(CONF_INCLUDE_MONTHLY_FEES, True)
+            ): bool,
             vol.Required(
                 CONF_ELECTRICITY_TAX, default=current.get(CONF_ELECTRICITY_TAX, DEFAULT_TAX)
             ): vol.Coerce(float),

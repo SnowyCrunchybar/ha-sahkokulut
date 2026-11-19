@@ -1,0 +1,36 @@
+name: Päivitä verkkoyhtiöiden siirtohinnastot
+
+on:
+  schedule:
+    # Tarkista hinnastot joka maanantai klo 06:00 UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-tariffs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hae repositorio
+        uses: actions/checkout@v4
+
+      - name: Asenna Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Asenna riippuvuudet
+        run: pip install httpx beautifulsoup4
+
+      - name: Tarkista ja päivitä tariffs.json
+        run: python scripts/update_tariffs.py
+
+      - name: Tallenna muutokset repositorioon
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tariffs.json
+          git diff --staged --quiet || git commit -m "chore: päivitä verkkoyhtiöiden siirtohinnastot automaattisesti"
+          git push
