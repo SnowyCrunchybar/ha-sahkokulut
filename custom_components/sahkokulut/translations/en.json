@@ -5,30 +5,30 @@
         "title": "Existing electricity integrations detected",
         "description": "Compatible energy, solar production, transfer, or spot price sensors were found. Would you like to use them?",
         "data": {
-          "use_discovered": "Use detected integrations automatically",
+          "use_discovered": "Use detected sensors automatically",
           "discovered_energy": "Detected energy meter (kWh)",
           "discovered_solar": "Detected solar production / export sensor (optional)",
           "discovered_transfer": "Detected transfer price sensor (optional)",
           "discovered_spot": "Detected spot/energy price sensor",
-          "dso_product": "Distribution System Operator (DSO) & product",
           "calc_mode": "Calculation mode"
         }
       },
       "manual_setup": {
         "title": "Sähkökulut – Basic setup",
-        "description": "Select your energy meter, optional solar sensor, and DSO.",
+        "description": "Select your energy meter and optional solar sensor.",
         "data": {
           "energy_sensor": "Energy meter (kWh)",
           "source_type": "Meter update type",
           "solar_sensor": "Solar production / export sensor (kWh, optional)",
-          "dso_product": "Distribution System Operator (DSO) & product",
           "calc_mode": "Calculation mode"
         }
       },
       "transfer": {
-        "title": "Grid transfer prices & fuse size",
-        "description": "Verify prices (c/kWh, incl. VAT) and select your main fuse size to prefill the monthly fee.",
+        "title": "DSO, tariff name & transfer prices",
+        "description": "Enter your DSO (e.g. Alva Sähköverkko), tariff name (e.g. Yleissiirto, Yleissiirto 5, Kausisiirto), and prices (c/kWh, incl. VAT).",
         "data": {
+          "dso_name": "Distribution System Operator (DSO)",
+          "tariff_name": "Tariff product name",
           "tariff_type": "Transfer tariff",
           "transfer_day": "Transfer price – general / day / winter weekday (c/kWh)",
           "transfer_night": "Transfer price – night / other time (c/kWh)",
@@ -36,10 +36,8 @@
           "day_end": "Daytime end hour (1–24)",
           "saturday_winter": "Count Saturday as winter weekday?",
           "electricity_tax": "Electricity tax + security of supply fee (c/kWh)",
-          "fuse_size": "Main fuse size",
           "transfer_monthly": "Transfer monthly fee (€/month)",
-          "include_monthly_fees": "Include daily prorated monthly fees in accumulated cost",
-          "auto_update_tariff": "Auto-update DSO transfer prices"
+          "include_monthly_fees": "Include daily prorated monthly fees in accumulated cost"
         }
       },
       "energy": {
@@ -70,9 +68,11 @@
   "options": {
     "step": {
       "init": {
-        "title": "Update electricity, transfer, and solar prices",
-        "description": "Edit pricing values (c/kWh and €/month).",
+        "title": "Update tariff product and prices",
+        "description": "Edit DSO, tariff name, and pricing values (c/kWh and €/month).",
         "data": {
+          "dso_name": "Distribution System Operator (DSO)",
+          "tariff_name": "Tariff product name",
           "transfer_day": "Transfer price – general / day / winter weekday (c/kWh)",
           "transfer_night": "Transfer price – night / other time (c/kWh)",
           "transfer_monthly": "Transfer monthly fee (€/month)",
@@ -83,8 +83,7 @@
           "margin": "Import margin (c/kWh)",
           "solar_margin": "Solar export margin (c/kWh)",
           "solar_transfer_fee": "Grid production transfer fee (c/kWh)",
-          "solar_deduct_total": "Deduct solar credit from total cost",
-          "auto_update_tariff": "Auto-update DSO transfer prices"
+          "solar_deduct_total": "Deduct solar credit from total cost"
         }
       }
     }

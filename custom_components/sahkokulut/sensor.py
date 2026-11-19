@@ -36,23 +36,19 @@ from .calculator import (
     get_transfer_price_cents,
 )
 from .const import (
-    CONF_AUTO_UPDATE_TARIFF,
-    CONF_DSO_PRODUCT,
+    CONF_DSO_NAME,
     CONF_ENERGY_SENSOR,
-    CONF_FUSE_SIZE,
     CONF_INCLUDE_MONTHLY_FEES,
     CONF_SOLAR_DEDUCT_FROM_TOTAL,
     CONF_SOLAR_SENSOR,
     CONF_SOLAR_SOURCE_TYPE,
     CONF_SOURCE_TYPE,
     CONF_SPOT_SENSOR,
-    CONF_TRANSFER_DAY,
+    CONF_TARIFF_NAME,
     CONF_TRANSFER_MONTHLY,
-    CONF_TRANSFER_NIGHT,
     CONF_TRANSFER_SENSOR,
     SOURCE_REALTIME,
 )
-from .tariffs import async_fetch_tariffs
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -107,6 +103,13 @@ class SahkokulutCurrentPriceSensor(SensorEntity):
         self._attr_unique_id = f"{entry.entry_id}_current_price"
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {
+            "dso_name": self._config.get(CONF_DSO_NAME, ""),
+            "tariff_name": self._config.get(CONF_TARIFF_NAME, ""),
+        }
+
+    @property
     def native_value(self) -> float:
         spot_cents = _read_price_sensor_cents(self.hass, self._config.get(CONF_SPOT_SENSOR))
         transfer_cents = _read_price_sensor_cents(self.hass, self._config.get(CONF_TRANSFER_SENSOR))
@@ -130,6 +133,13 @@ class SahkokulutTransferPriceSensor(SensorEntity):
     def __init__(self, entry: ConfigEntry, config: dict[str, Any]) -> None:
         self._attr_unique_id = f"{entry.entry_id}_transfer_price"
         self._config = config
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {
+            "dso_name": self._config.get(CONF_DSO_NAME, ""),
+            "tariff_name": self._config.get(CONF_TARIFF_NAME, ""),
+        }
 
     @property
     def native_value(self) -> float:
@@ -348,16 +358,6 @@ class SahkokulutTotalCostSensor(RestoreEntity, SensorEntity):
             if "last_fee_date" in last_state.attributes and last_state.attributes["last_fee_date"] is not None:
                 self._last_fee_date = str(last_state.attributes["last_fee_date"])
 
-        # Tarkista hinnastopäivitykset kerran vuorokaudessa jos automaattipäivitys on käytössä
-        if self._config.get(CONF_AUTO_UPDATE_TARIFF) and self._config.get(CONF_DSO_PRODUCT, "manual") != "manual":
-            self.async_on_remove(
-                async_track_time_interval(
-                    self.hass, self._refresh_remote_tariff, timedelta(hours=24)
-                )
-            )
-            self.hass.async_create_task(self._refresh_remote_tariff(dt_util.now()))
-
-        # Päivittäinen kuukausimaksun jyvitys keskiyöllä
         if self._config.get(CONF_INCLUDE_MONTHLY_FEES, True):
             self.async_on_remove(
                 async_track_time_change(
@@ -404,26 +404,12 @@ class SahkokulutTotalCostSensor(RestoreEntity, SensorEntity):
             self._last_fee_date = today_str
             self.async_write_ha_state()
 
-    async def _refresh_remote_tariff(self, _now: datetime) -> None:
-        """Päivitä verkkoyhtiön siirtohinnat ja sulakekoon perusmaksu etähinnastosta."""
-        dso_key = self._config.get(CONF_DSO_PRODUCT)
-        if not dso_key or dso_key == "manual":
-            return
-        tariffs = await async_fetch_tariffs(self.hass)
-        if dso_key in tariffs:
-            latest = tariffs[dso_key]
-            self._config[CONF_TRANSFER_DAY] = latest.get("transfer_day", self._config.get(CONF_TRANSFER_DAY))
-            self._config[CONF_TRANSFER_NIGHT] = latest.get("transfer_night", self._config.get(CONF_TRANSFER_NIGHT))
-            fuse_size = self._config.get(CONF_FUSE_SIZE)
-            monthly_fees = latest.get("monthly_fees", {})
-            if fuse_size and fuse_size in monthly_fees:
-                self._config[CONF_TRANSFER_MONTHLY] = float(monthly_fees[fuse_size])
-            elif "transfer_monthly" in latest:
-                self._config[CONF_TRANSFER_MONTHLY] = float(latest["transfer_monthly"])
-
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         return {
+            "dso_name": self._config.get(CONF_DSO_NAME, ""),
+            "tariff_name": self._config.get(CONF_TARIFF_NAME, ""),
+            "transfer_monthly": self._config.get(CONF_TRANSFER_MONTHLY, 0.0),
             "last_kwh": self._last_kwh,
             "last_solar_kwh": self._last_solar_kwh,
             "last_fee_date": self._last_fee_date,
@@ -577,7 +563,6 @@ class SahkokulutTotalCostSensor(RestoreEntity, SensorEntity):
                 if delta_solar_kwh > 0
                 else 0.0
             )
-            # Lisää päiväkohtainen perusmaksu keskiyön tunnille (klo 00:00)
             fee_eur = (
                 get_daily_fixed_fee_eur(dt_point, self._config)
                 if (include_fees and local_point.hour == 0)
