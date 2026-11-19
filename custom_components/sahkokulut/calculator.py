@@ -1,6 +1,7 @@
-"""Tariff, energy, and solar credit calculation helpers for Sähkökulut."""
+"""Tariff, energy, monthly fee, and solar credit calculation helpers for Sähkökulut."""
 from __future__ import annotations
 
+import calendar
 from datetime import datetime
 from typing import Any
 
@@ -12,6 +13,7 @@ from .const import (
     CONF_DAY_END,
     CONF_DAY_START,
     CONF_ELECTRICITY_TAX,
+    CONF_ENERGY_MONTHLY,
     CONF_FIXED_PRICE,
     CONF_MARGIN,
     CONF_SATURDAY_WINTER,
@@ -21,6 +23,7 @@ from .const import (
     CONF_SOLAR_TRANSFER_FEE,
     CONF_TARIFF_TYPE,
     CONF_TRANSFER_DAY,
+    CONF_TRANSFER_MONTHLY,
     CONF_TRANSFER_NIGHT,
     CONTRACT_FIXED,
     CONTRACT_HYBRID,
@@ -109,6 +112,22 @@ def get_total_price_eur_per_kwh(
             total_cents += fixed + margin + (spot - fixed)
 
     return round(total_cents / 100.0, 6)
+
+
+def get_daily_fixed_fee_eur(dt_obj: datetime, config: dict[str, Any]) -> float:
+    """Laske päiväkohtainen perusmaksu (€/päivä) kuukauden päivien mukaan."""
+    local_dt = dt_util.as_local(dt_obj)
+    days_in_month = calendar.monthrange(local_dt.year, local_dt.month)[1]
+    transfer_monthly = float(config.get(CONF_TRANSFER_MONTHLY, 0.0))
+    energy_monthly = (
+        0.0
+        if config.get(CONF_CALC_MODE) == MODE_TRANSFER_ONLY
+        else float(config.get(CONF_ENERGY_MONTHLY, 0.0))
+    )
+    total_monthly = transfer_monthly + energy_monthly
+    if total_monthly <= 0:
+        return 0.0
+    return round(total_monthly / days_in_month, 6)
 
 
 def get_solar_credit_eur_per_kwh(

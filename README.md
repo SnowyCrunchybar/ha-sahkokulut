@@ -1,13 +1,14 @@
 # Sähkökulut (`ha-sahkokulut`)
 
-HACS-yhteensopiva Home Assistant -integraatio sähkön kokonaiskustannusten (sähkönsiirto + sähkövero + sähköenergia - aurinkotuoton myyntihyvitys) laskentaan ja seurantaan Suomessa.
+HACS-yhteensopiva Home Assistant -integraatio sähkön kokonaiskustannusten (sähkönsiirto + sähkövero + sähköenergia + kuukausimaksut - aurinkotuoton myyntihyvitys) laskentaan ja seurantaan Suomessa.
 
 ## Ominaisuudet
 
 - **Automaattinen tunnistus:** Etsii asennuksessa olemassa olevat kulutus-, siirto-, aurinkotuotto- ja pörssisähkösensorit (esim. *Oma Helen* ml. Nimikkopaneeli, *Elenia*, *Caruna*, *Fortum*, *Fingrid Datahub*, *Nord Pool*, *Entso-E*, *Sähkön hinta nyt*).
-- **Aurinkopaneelin tuotto ja myyntihyvitys:** Vähentää verkkoon myydyn ylijäämäsähkön tai Helenin Nimikkopaneelin tuoton (ALV 0 % spot-hinta - välityspalkkio - tuotannon siirtomaksu) suoraan kertyneistä kuluista ja tuottaa erillisen `sensor.sahkokulut_myyntihyvitys` -sensorin Energy Dashboardin *Return to grid* -seurantaan.
-- **Siirtohinnastojen esitäyttö & päivitys:** Sisältää yleisimmät verkkoyhtiöt (`tariffs.json`) ja tukee yleissiirtoa, aikasiirtoa (päivä/yö) sekä kausisiirtoa (talviarkipäivä/muu aika).
-- **Reaaliaikainen ja viiveellä päivittyvä data:** Toimii sekä paikallisten mittarien (HAN / Shelly) että 1–2 vrk viiveellä päivittyvien tilastointegraatioiden kanssa suoraan Energy Dashboardissa.
+- **Suomen verkkoyhtiöt ja sulakekoot (`tariffs.json`):** Sisältää valmiit hinnastot ja pääsulakekokojen (1x25A – 3x63A) mukaiset perusmaksut yli kymmenelle suomalaiselle verkkoyhtiölle (Helen, Caruna, Caruna Espoo, Elenia, Alva, Vantaan Energia, Turku Energia, Oulun Energia, Tampereen Energia, Savon Voima, Kymenlaakson Sähköverkko, PKS, Vaasan Sähköverkko).
+- **Automaattinen hinnastopäivitys:** Integraatio tarkistaa kerran vuorokaudessa `tariffs.json`-päivitykset, ja mukana tuleva GitHub Actions -työnkulku valvoo yhtiöiden hinnastomuutoksia viikoittain.
+- **Päivittäinen perusmaksujen jyvitys:** Lisää kuukausittaiset perusmaksut (`€/kk / kuukauden päivät`) automaattisesti vuorokauden vaihtuessa kokonaiskustannuksiin (valittavissa asetuksista).
+- **Aurinkopaneelin tuotto ja myyntihyvitys:** Vähentää verkkoon myydyn ylijäämäsähkön tai Helenin Nimikkopaneelin tuoton (ALV 0 % spot-hinta - välityspalkkio - tuotannon siirtomaksu) suoraan kertyneistä kuluista ja tuottaa erillisen `sensor.sahkokulut_myyntihyvitys` -sensorin.
 - **Välkkysähkön jälkilaskenta:** Palvelukutsu `sahkokulut.recalculate_period` päivittää valitun aikavälin tilastot toteutuneella kulutusvaikutuksella (snt/kWh).
 
 ## Asennus (HACS)

@@ -13,9 +13,11 @@ CONF_CALC_MODE = "calc_mode"
 MODE_TRANSFER_ONLY = "transfer_only"
 MODE_TOTAL = "total"
 
-# Verkkoyhtiö ja siirtotariffit
+# Verkkoyhtiö, sulakekoko ja siirtotariffit
 CONF_DSO_PRODUCT = "dso_product"
+CONF_FUSE_SIZE = "fuse_size"
 CONF_AUTO_UPDATE_TARIFF = "auto_update_tariff"
+CONF_INCLUDE_MONTHLY_FEES = "include_monthly_fees"
 CONF_TARIFF_TYPE = "tariff_type"
 TARIFF_GENERAL = "general"
 TARIFF_TIME = "time"

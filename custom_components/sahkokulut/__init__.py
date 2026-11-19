@@ -16,9 +16,14 @@ from homeassistant.core import HomeAssistant, ServiceCall
 import homeassistant.helpers.config_validation as cv
 from homeassistant.util import dt as dt_util
 
-from .calculator import get_solar_credit_eur_per_kwh, get_total_price_eur_per_kwh
+from .calculator import (
+    get_daily_fixed_fee_eur,
+    get_solar_credit_eur_per_kwh,
+    get_total_price_eur_per_kwh,
+)
 from .const import (
     CONF_ENERGY_SENSOR,
+    CONF_INCLUDE_MONTHLY_FEES,
     CONF_SOLAR_DEDUCT_FROM_TOTAL,
     CONF_SOLAR_SENSOR,
     CONF_SPOT_SENSOR,
@@ -53,6 +58,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         solar_entity = config.get(CONF_SOLAR_SENSOR)
         spot_entity = config.get(CONF_SPOT_SENSOR)
         deduct_solar = bool(solar_entity and config.get(CONF_SOLAR_DEDUCT_FROM_TOTAL, True))
+        include_fees = bool(config.get(CONF_INCLUDE_MONTHLY_FEES, True))
         cost_entity = f"sensor.{DOMAIN}_kertynyt_kustannus"
 
         query_entities = {energy_entity, cost_entity}
@@ -98,6 +104,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         for row in energy_rows:
             ts = float(row["start"])
             dt_point = dt_util.utc_from_timestamp(ts)
+            local_point = dt_util.as_local(dt_point)
             delta_kwh = max(0.0, float(row.get("change") or 0.0))
             delta_solar_kwh = solar_by_ts.get(ts, 0.0)
             spot_val = spot_by_ts.get(ts)
@@ -113,7 +120,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 if delta_solar_kwh > 0
                 else 0.0
             )
-            running_sum = max(0.0, running_sum + (delta_kwh * price_eur) - (delta_solar_kwh * credit_eur))
+            fee_eur = (
+                get_daily_fixed_fee_eur(dt_point, config)
+                if (include_fees and local_point.hour == 0)
+                else 0.0
+            )
+            running_sum = max(
+                0.0, running_sum + (delta_kwh * price_eur) + fee_eur - (delta_solar_kwh * credit_eur)
+            )
             updated_points.append(
                 StatisticData(start=dt_point, state=running_sum, sum=running_sum)
             )

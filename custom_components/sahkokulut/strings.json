@@ -26,8 +26,8 @@
         }
       },
       "transfer": {
-        "title": "Sähkönsiirron hinnat",
-        "description": "Tarkista tai syötä hinnat arvonlisäveroineen (snt/kWh).",
+        "title": "Sähkönsiirron hinnat ja sulakekoko",
+        "description": "Tarkista hinnat (snt/kWh, sis. ALV) ja valitse pääsulakekoko perusmaksun esitäyttöä varten.",
         "data": {
           "tariff_type": "Siirtotariffi",
           "transfer_day": "Siirtohinta – yleis / päivä / talviarkipäivä (snt/kWh)",
@@ -36,7 +36,9 @@
           "day_end": "Päiväajan päättymistunti (1–24)",
           "saturday_winter": "Lasketaanko lauantai talviarkipäiväksi?",
           "electricity_tax": "Sähkövero + huoltovarmuusmaksu (snt/kWh)",
+          "fuse_size": "Pääsulakekoko",
           "transfer_monthly": "Siirron perusmaksu (€/kk)",
+          "include_monthly_fees": "Sisällytä perusmaksut kertyneeseen kustannukseen (päiväkohtainen osuus)",
           "auto_update_tariff": "Päivitä verkkoyhtiön siirtohinnat automaattisesti"
         }
       },
@@ -69,10 +71,13 @@
     "step": {
       "init": {
         "title": "Päivitä sähkön, siirron ja aurinkotuoton hinnat",
-        "description": "Muokkaa hintatietoja (snt/kWh).",
+        "description": "Muokkaa hintatietoja (snt/kWh ja €/kk).",
         "data": {
           "transfer_day": "Siirtohinta – yleis / päivä / talviarkipäivä (snt/kWh)",
           "transfer_night": "Siirtohinta – yö / muu aika (snt/kWh)",
+          "transfer_monthly": "Siirron perusmaksu (€/kk)",
+          "energy_monthly": "Energian perusmaksu (€/kk)",
+          "include_monthly_fees": "Sisällytä perusmaksut kertyneeseen kustannukseen",
           "electricity_tax": "Sähkövero + huoltovarmuusmaksu (snt/kWh)",
           "fixed_price": "Kiinteä hinta / Välkkysähkön perushinta (snt/kWh)",
           "margin": "Ostosähkön marginaali (snt/kWh)",
