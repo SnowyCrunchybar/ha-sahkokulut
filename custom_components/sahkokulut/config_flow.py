@@ -216,10 +216,10 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(step_id="user", data_schema=schema)
 
     async def async_step_sensors(self, user_input: dict[str, Any] | None = None):
-        """Vaihe 2: Kulutusmittari ja mahdollinen hintasensori."""
+        """Vaihe 2: Kulutusmittari ja mahdollinen hintasensori (vain pörssisähköllä)."""
         follow_mode = self._data.get(CONF_FOLLOW_MODE, FOLLOW_SPOT_TRANSFER)
         open_solar = bool(self._data.get(CONF_OPEN_SOLAR_OPTIONS, False))
-        needs_price_sensor = follow_mode in (FOLLOW_SPOT_TRANSFER, FOLLOW_HYBRID_TRANSFER)
+        needs_price_sensor = follow_mode == FOLLOW_SPOT_TRANSFER
 
         if user_input is not None:
             energy_sensor = user_input.get("discovered_energy") or user_input.get(CONF_ENERGY_SENSOR)
@@ -237,6 +237,8 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if needs_price_sensor:
                 spot_sensor = user_input.get("discovered_spot") or user_input.get(CONF_SPOT_SENSOR)
                 self._data[CONF_SPOT_SENSOR] = spot_sensor or None
+            else:
+                self._data[CONF_SPOT_SENSOR] = None
 
             transfer_sensor = user_input.get("discovered_transfer")
             if transfer_sensor:
@@ -456,30 +458,20 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(step_id="transfer", data_schema=vol.Schema(fields))
 
     async def async_step_energy(self, user_input: dict[str, Any] | None = None):
-        """Vaihe 5: Energiasopimuksen tiedot valitun seurattavan kokonaisuuden mukaan."""
+        """Vaihe 5: Sopimusten hinnat – kiinteällä ja hybridillä ei kysytä pörssisähköä."""
         follow_mode = self._data.get(CONF_FOLLOW_MODE, FOLLOW_SPOT_TRANSFER)
 
         if user_input is not None:
             self._data.update(user_input)
+            if follow_mode in (FOLLOW_FIXED_TRANSFER, FOLLOW_HYBRID_TRANSFER):
+                self._data[CONF_SPOT_SENSOR] = None
             return self.async_create_entry(title=_build_entry_title(self._data), data=self._data)
 
         fields: dict[Any, Any] = {}
         default_spot = self._data.get(CONF_SPOT_SENSOR)
 
-        if follow_mode == FOLLOW_FIXED_TRANSFER:
+        if follow_mode in (FOLLOW_FIXED_TRANSFER, FOLLOW_HYBRID_TRANSFER):
             fields[vol.Required(CONF_FIXED_PRICE, default=8.50)] = vol.Coerce(float)
-            fields[vol.Optional(CONF_MARGIN, default=0.0)] = vol.Coerce(float)
-            fields[vol.Optional(CONF_ENERGY_MONTHLY, default=0.0)] = vol.Coerce(float)
-        elif follow_mode == FOLLOW_HYBRID_TRANSFER:
-            fields[vol.Required(CONF_FIXED_PRICE, default=8.50)] = vol.Coerce(float)
-            if default_spot:
-                fields[vol.Optional(CONF_SPOT_SENSOR, default=default_spot)] = selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor")
-                )
-            else:
-                fields[vol.Optional(CONF_SPOT_SENSOR)] = selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor")
-                )
             fields[vol.Optional(CONF_MARGIN, default=0.0)] = vol.Coerce(float)
             fields[vol.Optional(CONF_ENERGY_MONTHLY, default=0.0)] = vol.Coerce(float)
         else:

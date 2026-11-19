@@ -7,9 +7,5 @@
   "documentation": "https://github.com/SnowyCrunchybar/ha-sahkokulut",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/SnowyCrunchybar/ha-sahkokulut/issues",
-<<<<<<< Updated upstream
-  "version": "1.2.0"
-=======
   "version": "1.2.5"
->>>>>>> Stashed changes
 }

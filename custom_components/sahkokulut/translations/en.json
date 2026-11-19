@@ -10,15 +10,15 @@
         }
       },
       "sensors": {
-        "title": "Step 2 – Meters and price sensors",
-        "description": "Select your energy meter and optional spot or price sensor.",
+        "title": "Step 2 – Meters and sensors",
+        "description": "Select your energy meter and optional spot sensor.",
         "data": {
           "discovered_energy": "Detected energy meter (kWh)",
           "energy_sensor": "Energy meter (kWh)",
           "source_type": "Energy meter update type",
-          "discovered_spot": "Detected spot or price sensor",
-          "spot_sensor": "Select price sensor manually",
-          "discovered_transfer": "Detected transfer price sensor (optional)"
+          "discovered_spot": "Detected spot sensor",
+          "spot_sensor": "Select spot sensor manually",
+          "discovered_transfer": "Detected transfer sensor (optional)"
         }
       },
       "solar": {
@@ -61,16 +61,11 @@
         }
       },
       "energy": {
-<<<<<<< Updated upstream
-        "title": "Electricity contract prices",
-        "description": "Enter prices and monthly fees for your selected contract type.",
-=======
         "title": "Contract prices",
         "description": "Enter contract prices and the electricity contract monthly fee (€/month), if not already included in existing entities or unavailable as an entity.",
->>>>>>> Stashed changes
         "data": {
-          "fixed_price": "Fixed price / Hybrid base price (c/kWh)",
-          "spot_sensor": "Price sensor (c/kWh or €/kWh)",
+          "fixed_price": "Fixed price / Base price (c/kWh)",
+          "spot_sensor": "Spot sensor (c/kWh or €/kWh)",
           "margin": "Margin / commission (c/kWh)",
           "energy_monthly": "Electricity contract monthly fee (€/month)"
         }
@@ -92,7 +87,7 @@
           "solar_monthly_fee": "Rented panel monthly fee (€/month)",
           "include_monthly_fees": "Include monthly fees in total cost",
           "electricity_tax": "Electricity tax (c/kWh)",
-          "fixed_price": "Fixed price / Hybrid base price (c/kWh)",
+          "fixed_price": "Fixed price / Base price (c/kWh)",
           "margin": "Margin / commission (c/kWh)",
           "solar_margin": "Solar export margin (c/kWh)",
           "solar_transfer_fee": "Grid production transfer fee (c/kWh)",
