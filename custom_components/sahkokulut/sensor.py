@@ -50,7 +50,6 @@ from .const import (
     CONF_TRANSFER_MONTHLY,
     CONF_TRANSFER_SENSOR,
     SOLAR_OPT_OWN_SELL,
-    SOLAR_OPT_RENTED,
     SOURCE_REALTIME,
 )
 
@@ -73,13 +72,13 @@ def _read_price_sensor_cents(hass: HomeAssistant, entity_id: str | None) -> floa
 
 
 def _is_credit_active(config: dict[str, Any]) -> bool:
-    """Tarkista lasketaanko aurinkotuotolle myynti- tai nimikkopaneelihyvitystä."""
+    """Tarkista lasketaanko aurinkotuotolle myyntihyvitystä."""
     solar_option = config.get(CONF_SOLAR_OPTION)
-    if solar_option in (SOLAR_OPT_OWN_SELL, SOLAR_OPT_RENTED):
+    if solar_option == SOLAR_OPT_OWN_SELL:
         return True
-    if solar_option == "own_no_sell":
+    if solar_option in ("rented", "own_no_sell", "none"):
         return False
-    return bool(config.get(CONF_SOLAR_DEDUCT_FROM_TOTAL, True))
+    return bool(config.get(CONF_SOLAR_DEDUCT_FROM_TOTAL, False))
 
 
 async def async_setup_entry(

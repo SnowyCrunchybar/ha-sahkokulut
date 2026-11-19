@@ -12,7 +12,7 @@ FOLLOW_TRANSFER_ONLY = "transfer_only"
 # Täppi ekalla sivulla: avaa lisävalinnat (aurinkopaneelit)
 CONF_OPEN_SOLAR_OPTIONS = "open_solar_options"
 
-# Aurinkopaneeli / tuottotapa (vaihe 3)
+# Aurinkopaneeli / tuottotapa
 CONF_SOLAR_OPTION = "solar_option"
 SOLAR_OPT_NONE = "none"
 SOLAR_OPT_OWN_SELL = "own_sell"
@@ -38,6 +38,7 @@ CONF_TARIFF_TYPE = "tariff_type"
 TARIFF_GENERAL = "general"
 TARIFF_TIME = "time"
 TARIFF_SEASONAL = "seasonal"
+TARIFF_OTHER = "other"
 
 CONF_TRANSFER_DAY = "transfer_day"
 CONF_TRANSFER_NIGHT = "transfer_night"
