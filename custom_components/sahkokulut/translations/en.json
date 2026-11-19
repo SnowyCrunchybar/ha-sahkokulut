@@ -1,55 +1,34 @@
 {
   "config": {
     "step": {
-      "user": {
-        "title": "Sähkökulut – Initial options",
-        "description": "Choose whether you use spot/price sensors and whether you have a solar panel or rented/named panel.",
+      "discover": {
+        "title": "Existing electricity integrations detected",
+        "description": "Compatible energy, solar production, transfer, or spot price sensors were found. Would you like to use them?",
         "data": {
-<<<<<<< Updated upstream
-          "use_discovered": "Use detected integrations automatically",
+          "use_discovered": "Use detected sensors automatically",
           "discovered_energy": "Detected energy meter (kWh)",
           "discovered_solar": "Detected solar production / export sensor (optional)",
           "discovered_transfer": "Detected transfer price sensor (optional)",
           "discovered_spot": "Detected spot/energy price sensor",
-          "dso_product": "Distribution System Operator (DSO) & product",
           "calc_mode": "Calculation mode"
         }
       },
       "manual_setup": {
         "title": "Sähkökulut – Basic setup",
-        "description": "Select your energy meter, optional solar sensor, and DSO.",
-=======
-          "has_spot": "Use spot price or external price sensor",
-          "has_solar": "Have a solar panel or rented/named panel",
-          "calc_mode": "Calculation mode"
-        }
-      },
-      "sensors": {
-        "title": "Sähkökulut – Meters and price sensors",
-        "description": "Select your energy meter. If enabled, pick a detected sensor or choose one manually.",
->>>>>>> Stashed changes
+        "description": "Select your energy meter and optional solar sensor.",
         "data": {
-          "discovered_energy": "Detected energy meter (kWh)",
           "energy_sensor": "Energy meter (kWh)",
-<<<<<<< Updated upstream
           "source_type": "Meter update type",
           "solar_sensor": "Solar production / export sensor (kWh, optional)",
-          "dso_product": "Distribution System Operator (DSO) & product",
           "calc_mode": "Calculation mode"
-=======
-          "source_type": "Energy meter update type",
-          "discovered_spot": "Detected spot or price sensor",
-          "spot_sensor": "Select price sensor manually",
-          "discovered_solar": "Detected solar or rented panel sensor",
-          "solar_sensor": "Select solar sensor manually (kWh)",
-          "discovered_transfer": "Detected transfer price sensor (optional)"
->>>>>>> Stashed changes
         }
       },
       "transfer": {
-        "title": "Grid transfer prices & fuse size",
-        "description": "Verify prices (c/kWh, incl. VAT) and select your main fuse size to prefill the monthly fee.",
+        "title": "DSO, tariff name & transfer prices",
+        "description": "Enter your DSO (e.g. Alva Sähköverkko), tariff name (e.g. Yleissiirto, Yleissiirto 5, Kausisiirto), and prices (c/kWh, incl. VAT).",
         "data": {
+          "dso_name": "Distribution System Operator (DSO)",
+          "tariff_name": "Tariff product name",
           "tariff_type": "Transfer tariff",
           "transfer_day": "Transfer price – general / day / winter weekday (c/kWh)",
           "transfer_night": "Transfer price – night / other time (c/kWh)",
@@ -57,40 +36,31 @@
           "day_end": "Daytime end hour (1–24)",
           "saturday_winter": "Count Saturday as winter weekday?",
           "electricity_tax": "Electricity tax + security of supply fee (c/kWh)",
-          "fuse_size": "Main fuse size",
           "transfer_monthly": "Transfer monthly fee (€/month)",
-          "include_monthly_fees": "Include daily prorated monthly fees in accumulated cost",
-          "auto_update_tariff": "Auto-update DSO transfer prices"
+          "include_monthly_fees": "Include daily prorated monthly fees in accumulated cost"
         }
       },
       "energy": {
         "title": "Electricity contract prices",
-        "description": "Configure electricity contract type and pricing values.",
+        "description": "Configure electricity energy pricing.",
         "data": {
           "contract_type": "Contract type",
           "fixed_price": "Fixed price / Hybrid base price (c/kWh)",
-          "spot_sensor": "Price sensor (c/kWh or €/kWh)",
+          "spot_sensor": "Spot price sensor (c/kWh or €/kWh)",
           "margin": "Margin / commission (c/kWh)",
           "energy_monthly": "Energy monthly fee (€/month)"
         }
       },
-      "solar_type": {
-        "title": "Panel type",
-        "description": "Choose whether this is your own solar panel or a rented/named panel.",
+      "solar": {
+        "title": "Solar production and export credit",
+        "description": "Configure how solar generation or grid export reduces your electricity costs.",
         "data": {
-          "solar_panel_ownership": "Panel type"
-        }
-      },
-      "solar_details": {
-        "title": "Panel monthly fee and credit",
-        "description": "Enter optional panel monthly fee (€/month) and export/production credit settings.",
-        "data": {
-          "solar_monthly_fee": "Panel / subscription monthly fee (€/month)",
+          "solar_mode": "Solar calculation mode",
           "solar_source_type": "Solar sensor update type",
-          "solar_deduct_total": "Deduct credit directly from total accumulated cost",
+          "solar_deduct_total": "Deduct solar credit directly from total accumulated cost",
           "solar_margin": "Solar export broker margin (c/kWh)",
           "solar_transfer_fee": "Grid production transfer fee (c/kWh)",
-          "solar_spot_vat": "Price sensor includes 25.5% VAT (strip VAT for credit)"
+          "solar_spot_vat": "Spot sensor includes 25.5% VAT (strip VAT for export credit)"
         }
       }
     }
@@ -98,31 +68,22 @@
   "options": {
     "step": {
       "init": {
-<<<<<<< Updated upstream
-        "title": "Update electricity, transfer, and solar prices",
-        "description": "Edit pricing values (c/kWh and €/month).",
-=======
-        "title": "Update tariff product, monthly fees and prices",
-        "description": "Edit DSO, tariff name, monthly fees (€/month), and pricing values (c/kWh).",
->>>>>>> Stashed changes
+        "title": "Update tariff product and prices",
+        "description": "Edit DSO, tariff name, and pricing values (c/kWh and €/month).",
         "data": {
+          "dso_name": "Distribution System Operator (DSO)",
+          "tariff_name": "Tariff product name",
           "transfer_day": "Transfer price – general / day / winter weekday (c/kWh)",
           "transfer_night": "Transfer price – night / other time (c/kWh)",
           "transfer_monthly": "Transfer monthly fee (€/month)",
           "energy_monthly": "Energy monthly fee (€/month)",
-          "solar_monthly_fee": "Panel / subscription monthly fee (€/month)",
           "include_monthly_fees": "Include daily prorated monthly fees in total cost",
           "electricity_tax": "Electricity tax + security of supply fee (c/kWh)",
           "fixed_price": "Fixed price / Hybrid base price (c/kWh)",
           "margin": "Import margin (c/kWh)",
           "solar_margin": "Solar export margin (c/kWh)",
           "solar_transfer_fee": "Grid production transfer fee (c/kWh)",
-<<<<<<< Updated upstream
-          "solar_deduct_total": "Deduct solar credit from total cost",
-          "auto_update_tariff": "Auto-update DSO transfer prices"
-=======
-          "solar_deduct_total": "Deduct credit from total cost"
->>>>>>> Stashed changes
+          "solar_deduct_total": "Deduct solar credit from total cost"
         }
       }
     }

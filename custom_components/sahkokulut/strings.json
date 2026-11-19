@@ -1,54 +1,34 @@
 {
   "config": {
     "step": {
-      "user": {
-        "title": "Sähkökulut – Alkuvalinnat",
-        "description": "Valitse aluksi käytätkö pörssisähköä / hintasensoria ja onko sinulla aurinkopaneeli tai nimikkopaneeli.",
+      "discover": {
+        "title": "Löydettiin valmiita sähköintegraatioita",
+        "description": "Järjestelmästä tunnistettiin olemassa olevia kulutus-, aurinkotuotto-, siirto- tai hintasensoreita. Haluatko ottaa ne suoraan käyttöön?",
         "data": {
-<<<<<<< Updated upstream
-          "use_discovered": "Käytä tunnistettuja integraatioita automaattisesti",
+          "use_discovered": "Käytä tunnistettuja antureita automaattisesti",
           "discovered_energy": "Tunnistettu kulutusmittari (kWh)",
           "discovered_solar": "Tunnistettu aurinkotuotto- / myyntisensori (valinnainen)",
           "discovered_transfer": "Tunnistettu siirtohintasensori (valinnainen)",
           "discovered_spot": "Tunnistettu pörssisähkö- tai hintasensori",
-          "dso_product": "Sähkönsiirtoyhtiö ja tuote",
           "calc_mode": "Laskentatapa"
         }
       },
       "manual_setup": {
         "title": "Sähkökulut – Perusasetukset",
-        "description": "Valitse energiamittari, mahdollinen aurinkotuottomittari ja verkkoyhtiö.",
+        "description": "Valitse energiamittari ja mahdollinen aurinkotuottomittari.",
         "data": {
           "energy_sensor": "Energiamittari (kWh)",
           "source_type": "Mittarin päivitystapa",
           "solar_sensor": "Aurinkopaneelin tuotto- / myyntisensori (kWh, valinnainen)",
-          "dso_product": "Sähkönsiirtoyhtiö ja tuote",
           "calc_mode": "Laskentatapa"
-=======
-          "has_spot": "Käytössä pörssisähkö tai ulkoinen hintasensori",
-          "has_solar": "Käytössä aurinkopaneeli tai nimikkopaneeli",
-          "calc_mode": "Laskentatapa"
-        }
-      },
-      "sensors": {
-        "title": "Sähkökulut – Mittarit ja hintasensorit",
-        "description": "Valitse kulutusmittari. Jos valitsit hintasensorin tai aurinkopaneelin, voit valita tunnistetun sensorin tai hakea sen itse listasta.",
-        "data": {
-          "discovered_energy": "Tunnistettu kulutusmittari (kWh)",
-          "energy_sensor": "Kulutusmittari (kWh)",
-          "source_type": "Kulutusmittarin päivitystapa",
-          "discovered_spot": "Tunnistettu pörssisähkö- tai hintasensori",
-          "spot_sensor": "Hintasensori itse valittuna (esim. Helen / Nord Pool)",
-          "discovered_solar": "Tunnistettu aurinkotuotto- / nimikkopaneelisensori",
-          "solar_sensor": "Aurinkosensori itse valittuna (kWh)",
-          "discovered_transfer": "Tunnistettu siirtohintasensori (valinnainen)"
->>>>>>> Stashed changes
         }
       },
       "transfer": {
-        "title": "Sähkönsiirron hinnat ja sulakekoko",
-        "description": "Tarkista hinnat (snt/kWh, sis. ALV) ja valitse pääsulakekoko perusmaksun esitäyttöä varten.",
+        "title": "Sähkönsiirtoyhtiö, tuote ja hinnat",
+        "description": "Syötä sähkönsiirtoyhtiö (esim. Alva Sähköverkko), siirtotuotteen nimi (esim. Yleissiirto, Yleissiirto 5 tai Kausisiirto) ja hinnat (snt/kWh, sis. ALV).",
         "data": {
+          "dso_name": "Sähkönsiirtoyhtiö",
+          "tariff_name": "Siirtotuotteen nimi",
           "tariff_type": "Siirtotariffi",
           "transfer_day": "Siirtohinta – yleis / päivä / talviarkipäivä (snt/kWh)",
           "transfer_night": "Siirtohinta – yö / muu aika (snt/kWh)",
@@ -56,40 +36,31 @@
           "day_end": "Päiväajan päättymistunti (1–24)",
           "saturday_winter": "Lasketaanko lauantai talviarkipäiväksi?",
           "electricity_tax": "Sähkövero + huoltovarmuusmaksu (snt/kWh)",
-          "fuse_size": "Pääsulakekoko",
           "transfer_monthly": "Siirron perusmaksu (€/kk)",
-          "include_monthly_fees": "Sisällytä perusmaksut kertyneeseen kustannukseen (päiväkohtainen osuus)",
-          "auto_update_tariff": "Päivitä verkkoyhtiön siirtohinnat automaattisesti"
+          "include_monthly_fees": "Sisällytä perusmaksut kertyneeseen kustannukseen (päiväkohtainen osuus)"
         }
       },
       "energy": {
         "title": "Sähkösopimuksen hinnat",
-        "description": "Määritä sähköenergian sopimustyyppi ja hinnat.",
+        "description": "Määritä sähköenergian hinnoittelu.",
         "data": {
           "contract_type": "Sopimustyyppi",
           "fixed_price": "Kiinteä hinta / Välkkysähkön perushinta (snt/kWh)",
-          "spot_sensor": "Hintasensori (snt/kWh tai €/kWh)",
+          "spot_sensor": "Pörssisähkön hintasensori (snt/kWh tai €/kWh)",
           "margin": "Välityspalkkio / marginaali (snt/kWh)",
           "energy_monthly": "Energian perusmaksu (€/kk)"
         }
       },
-      "solar_type": {
-        "title": "Paneelin tyyppi",
-        "description": "Valitse onko kyseessä oma aurinkopaneeli vai nimikkopaneeli / vuokrapaneeli.",
+      "solar": {
+        "title": "Aurinkopaneelin tuotto ja myyntihyvitys",
+        "description": "Määritä miten aurinkopaneelin tuotto tai verkkoon myynti huomioidaan hinnoissa.",
         "data": {
-          "solar_panel_ownership": "Paneelin tyyppi"
-        }
-      },
-      "solar_details": {
-        "title": "Paneelin kuukausimaksu ja hyvitys",
-        "description": "Syötä paneelin mahdollinen kuukausimaksu (€/kk) sekä myynti- tai tuotantohyvityksen asetukset.",
-        "data": {
-          "solar_monthly_fee": "Paneelin / sopimuksen kuukausimaksu (€/kk)",
+          "solar_mode": "Tuoton laskentatapa",
           "solar_source_type": "Aurinkosensorin päivitystapa",
-          "solar_deduct_total": "Vähennä hyvitys suoraan kertyneestä kokonaiskustannuksesta",
+          "solar_deduct_total": "Vähennä myyntihyvitys suoraan kertyneestä kokonaiskustannuksesta",
           "solar_margin": "Sähkönmyynnin välityspalkkio (snt/kWh)",
           "solar_transfer_fee": "Verkkoyhtiön tuotannon siirtomaksu (snt/kWh)",
-          "solar_spot_vat": "Hintasensori sisältää ALV 25,5 % (poista ALV hyvityksestä)"
+          "solar_spot_vat": "Hintasensori sisältää ALV 25,5 % (poista ALV myyntihyvityksestä)"
         }
       }
     }
@@ -97,31 +68,22 @@
   "options": {
     "step": {
       "init": {
-<<<<<<< Updated upstream
-        "title": "Päivitä sähkön, siirron ja aurinkotuoton hinnat",
-        "description": "Muokkaa hintatietoja (snt/kWh ja €/kk).",
-=======
-        "title": "Päivitä siirtotuote, perusmaksut ja hinnat",
-        "description": "Muokkaa verkkoyhtiötä, siirtotuotteen nimeä, kuukausimaksuja (€/kk) ja hintoja (snt/kWh).",
->>>>>>> Stashed changes
+        "title": "Päivitä siirtotuote ja hinnat",
+        "description": "Muokkaa verkkoyhtiötä, siirtotuotteen nimeä ja hintoja (snt/kWh ja €/kk).",
         "data": {
+          "dso_name": "Sähkönsiirtoyhtiö",
+          "tariff_name": "Siirtotuotteen nimi",
           "transfer_day": "Siirtohinta – yleis / päivä / talviarkipäivä (snt/kWh)",
           "transfer_night": "Siirtohinta – yö / muu aika (snt/kWh)",
           "transfer_monthly": "Siirron perusmaksu (€/kk)",
           "energy_monthly": "Energian perusmaksu (€/kk)",
-          "solar_monthly_fee": "Paneelin / sopimuksen kuukausimaksu (€/kk)",
           "include_monthly_fees": "Sisällytä perusmaksut kertyneeseen kustannukseen",
           "electricity_tax": "Sähkövero + huoltovarmuusmaksu (snt/kWh)",
           "fixed_price": "Kiinteä hinta / Välkkysähkön perushinta (snt/kWh)",
           "margin": "Ostosähkön marginaali (snt/kWh)",
           "solar_margin": "Aurinkomyynnin välityspalkkio (snt/kWh)",
           "solar_transfer_fee": "Tuotannon siirtomaksu (snt/kWh)",
-<<<<<<< Updated upstream
-          "solar_deduct_total": "Vähennä myyntihyvitys kertyneestä kustannuksesta",
-          "auto_update_tariff": "Päivitä verkkoyhtiön siirtohinnat automaattisesti"
-=======
-          "solar_deduct_total": "Vähennä hyvitys kertyneestä kustannuksesta"
->>>>>>> Stashed changes
+          "solar_deduct_total": "Vähennä myyntihyvitys kertyneestä kustannuksesta"
         }
       }
     }
