@@ -116,6 +116,32 @@ def get_total_price_eur_per_kwh(
     return round(total_cents / 100.0, 6)
 
 
+def get_rented_solar_rate_eur_per_kwh(
+    config: dict[str, Any],
+    spot_price_cents: float | None = None,
+    custom_consumption_effect_cents: float | None = None,
+) -> float:
+    """Arvioi vuokrapaneelin / nimikkopaneelin energiamaksuhyvityksen yksikköhinta (€/kWh)."""
+    contract = config.get(CONF_CONTRACT_TYPE, CONTRACT_FIXED)
+    margin = float(config.get(CONF_MARGIN, 0.0))
+    fixed = float(config.get(CONF_FIXED_PRICE, 0.0))
+
+    if contract == CONTRACT_FIXED:
+        rate_cents = fixed + margin
+    elif contract == CONTRACT_SPOT:
+        spot = spot_price_cents if spot_price_cents is not None else 0.0
+        rate_cents = spot + margin
+    elif contract == CONTRACT_HYBRID:
+        if custom_consumption_effect_cents is not None:
+            rate_cents = fixed + margin + custom_consumption_effect_cents
+        else:
+            rate_cents = fixed + margin
+    else:
+        rate_cents = fixed + margin
+
+    return round(max(0.0, rate_cents) / 100.0, 6)
+
+
 def get_daily_fixed_fee_eur(dt_obj: datetime, config: dict[str, Any]) -> float:
     """Laske päiväkohtainen perusmaksu (€/päivä) kuukauden päivien mukaan."""
     local_dt = dt_util.as_local(dt_obj)

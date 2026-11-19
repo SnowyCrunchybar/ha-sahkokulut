@@ -31,6 +31,7 @@ from homeassistant.util import dt as dt_util
 
 from .calculator import (
     get_daily_fixed_fee_eur,
+    get_rented_solar_rate_eur_per_kwh,
     get_solar_credit_eur_per_kwh,
     get_total_price_eur_per_kwh,
     get_transfer_price_cents,
@@ -53,6 +54,7 @@ from .const import (
     CONF_TRANSFER_SENSOR,
     MODE_TRANSFER_ONLY,
     SOLAR_OPT_OWN_SELL,
+    SOLAR_OPT_RENTED,
     SOURCE_REALTIME,
 )
 
@@ -100,11 +102,169 @@ async def async_setup_entry(
     if config.get(CONF_CALC_MODE) != MODE_TRANSFER_ONLY:
         entities.append(SahkokulutEnergyMonthlyFeeSensor(entry, config))
 
-    if config.get(CONF_SOLAR_SENSOR) and _is_credit_active(config):
-        entities.append(SahkokulutSolarPriceSensor(entry, config))
-        entities.append(SahkokulutSolarCreditSensor(hass, entry, config))
+    if config.get(CONF_SOLAR_SENSOR):
+        if _is_credit_active(config):
+            entities.append(SahkokulutSolarPriceSensor(entry, config))
+            entities.append(SahkokulutSolarCreditSensor(hass, entry, config))
+        elif config.get(CONF_SOLAR_OPTION) == SOLAR_OPT_RENTED:
+            entities.append(SahkokulutRentedSolarEstimateSensor(hass, entry, config))
 
     async_add_entities(entities)
+
+
+class SahkokulutRentedSolarEstimateSensor(RestoreEntity, SensorEntity):
+    """Arvioitu energiamaksuhyvitys (€) vuokra- / nimikkopaneelin tuotannosta."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Arvioitu hyvitys"
+    _attr_native_unit_of_measurement = CURRENCY_EURO
+    _attr_device_class = SensorDeviceClass.MONETARY
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_suggested_display_precision = 2
+
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, config: dict[str, Any]) -> None:
+        self.hass = hass
+        self._config = config
+        self._attr_unique_id = f"{entry.entry_id}_rented_solar_estimate"
+        self._estimated_credit: float = 0.0
+        self._last_solar_kwh: float | None = None
+
+    @property
+    def native_value(self) -> float:
+        return round(self._estimated_credit, 4)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {
+            "note": "Arvio energiamaksun hyvityksestä (kWh x energiahinta); vuokramaksu erikseen.",
+            "last_solar_kwh": self._last_solar_kwh,
+        }
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            try:
+                self._estimated_credit = float(last_state.state)
+            except ValueError:
+                self._estimated_credit = 0.0
+            if "last_solar_kwh" in last_state.attributes and last_state.attributes["last_solar_kwh"] is not None:
+                self._last_solar_kwh = float(last_state.attributes["last_solar_kwh"])
+
+        solar_entity = self._config.get(CONF_SOLAR_SENSOR)
+        if not solar_entity:
+            return
+
+        solar_source = self._config.get(CONF_SOLAR_SOURCE_TYPE, SOURCE_DELAYED_STATS)
+        if solar_source == SOURCE_REALTIME:
+            self.async_on_remove(
+                async_track_state_change_event(
+                    self.hass, [solar_entity], self._handle_realtime_rented_change
+                )
+            )
+        else:
+            self.async_on_remove(
+                async_track_time_interval(
+                    self.hass, self._sync_delayed_rented_estimate, timedelta(hours=1)
+                )
+            )
+            self.hass.async_create_task(self._sync_delayed_rented_estimate(dt_util.now()))
+
+    @callback
+    def _handle_realtime_rented_change(self, event: Event) -> None:
+        new_state = event.data.get("new_state")
+        if not new_state or new_state.state in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            return
+        try:
+            current_kwh = float(new_state.state)
+        except ValueError:
+            return
+
+        if self._last_solar_kwh is None:
+            self._last_solar_kwh = current_kwh
+            self.async_write_ha_state()
+            return
+
+        delta_kwh = current_kwh - self._last_solar_kwh
+        if delta_kwh > 0:
+            spot_cents = _read_price_sensor_cents(self.hass, self._config.get(CONF_SPOT_SENSOR))
+            rate = get_rented_solar_rate_eur_per_kwh(self._config, spot_price_cents=spot_cents)
+            self._estimated_credit += delta_kwh * rate
+            self._last_solar_kwh = current_kwh
+            self.async_write_ha_state()
+        elif delta_kwh < 0:
+            self._last_solar_kwh = current_kwh
+            self.async_write_ha_state()
+
+    async def _sync_delayed_rented_estimate(self, _now: datetime) -> None:
+        solar_entity = self._config.get(CONF_SOLAR_SENSOR)
+        spot_entity = self._config.get(CONF_SPOT_SENSOR)
+        if not solar_entity:
+            return
+
+        start_time = dt_util.utcnow() - timedelta(days=7)
+        end_time = dt_util.utcnow()
+        stats_entities = {solar_entity}
+        if spot_entity:
+            stats_entities.add(spot_entity)
+
+        stats = await get_instance(self.hass).async_add_executor_job(
+            statistics_during_period,
+            self.hass,
+            start_time,
+            end_time,
+            stats_entities,
+            "hour",
+            None,
+            {"change", "mean", "sum"},
+        )
+
+        solar_rows = stats.get(solar_entity, [])
+        if not solar_rows:
+            return
+
+        spot_by_ts: dict[float, float] = {}
+        if spot_entity and spot_entity in stats:
+            for row in stats[spot_entity]:
+                if row.get("mean") is not None:
+                    spot_by_ts[row["start"]] = float(row["mean"])
+
+        last_own = await get_instance(self.hass).async_add_executor_job(
+            get_last_statistics, self.hass, 1, self.entity_id, True, {"sum"}
+        )
+        running_sum = 0.0
+        last_ts = 0.0
+        if self.entity_id in last_own and last_own[self.entity_id]:
+            running_sum = float(last_own[self.entity_id][0].get("sum") or 0.0)
+            last_ts = float(last_own[self.entity_id][0]["start"])
+
+        new_points: list[StatisticData] = []
+        for row in solar_rows:
+            ts = float(row["start"])
+            if ts <= last_ts:
+                continue
+            delta_kwh = max(0.0, float(row.get("change") or 0.0))
+            dt_point = dt_util.utc_from_timestamp(ts)
+            rate = get_rented_solar_rate_eur_per_kwh(
+                self._config, spot_price_cents=spot_by_ts.get(ts)
+            )
+            running_sum += delta_kwh * rate
+            new_points.append(
+                StatisticData(start=dt_point, state=running_sum, sum=running_sum)
+            )
+
+        if new_points:
+            metadata = StatisticMetaData(
+                has_mean=False,
+                has_sum=True,
+                name=self.name,
+                source="recorder",
+                statistic_id=self.entity_id,
+                unit_of_measurement=CURRENCY_EURO,
+            )
+            async_import_statistics(self.hass, metadata, new_points)
+            self._estimated_credit = running_sum
+            self.async_write_ha_state()
 
 
 class SahkokulutEnergyMonthlyFeeSensor(SensorEntity):
