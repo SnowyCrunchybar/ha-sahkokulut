@@ -201,3 +201,155 @@ BUILTIN_TARIFFS: dict[str, dict[str, Any]] = {
         "transfer_night": 0.0,
         "transfer_monthly": 5.90,
         "monthly_fees": {
+            "1x25A (kerrostalo)": 4.50,
+            "3x25A": 5.90,
+            "3x35A": 9.80,
+            "3x50A": 14.50,
+            "3x63A": 18.90,
+        },
+        "day_start": 7,
+        "day_end": 22,
+        "saturday_winter": False,
+    },
+    "turku_energia_yleis": {
+        "name": "Turku Energia Sähköverkot – Yleissiirto",
+        "provider": "turku_energia",
+        "tariff_type": TARIFF_GENERAL,
+        "transfer_day": 4.15,
+        "transfer_night": 0.0,
+        "transfer_monthly": 8.40,
+        "monthly_fees": {
+            "1x25A (kerrostalo)": 4.80,
+            "3x25A": 8.40,
+            "3x35A": 13.60,
+            "3x50A": 19.90,
+            "3x63A": 25.40,
+        },
+        "day_start": 7,
+        "day_end": 22,
+        "saturday_winter": False,
+    },
+    "oulun_energia_yleis": {
+        "name": "Oulun Energia Sähköverkko – Yleissiirto",
+        "provider": "oulun_energia",
+        "tariff_type": TARIFF_GENERAL,
+        "transfer_day": 3.79,
+        "transfer_night": 0.0,
+        "transfer_monthly": 7.50,
+        "monthly_fees": {
+            "1x25A (kerrostalo)": 4.20,
+            "3x25A": 7.50,
+            "3x35A": 12.10,
+            "3x50A": 17.80,
+            "3x63A": 22.90,
+        },
+        "day_start": 7,
+        "day_end": 22,
+        "saturday_winter": False,
+    },
+    "tampereen_sahkolaitos_yleis": {
+        "name": "Tampereen Energia Sähköverkko – Yleissiirto",
+        "provider": "tampereen_energia",
+        "tariff_type": TARIFF_GENERAL,
+        "transfer_day": 3.98,
+        "transfer_night": 0.0,
+        "transfer_monthly": 8.90,
+        "monthly_fees": {
+            "1x25A (kerrostalo)": 4.95,
+            "3x25A": 8.90,
+            "3x35A": 14.20,
+            "3x50A": 20.50,
+            "3x63A": 26.10,
+        },
+        "day_start": 7,
+        "day_end": 22,
+        "saturday_winter": False,
+    },
+    "savon_voima_yleis": {
+        "name": "Savon Voima Verkko – Yleissiirto",
+        "provider": "savon_voima",
+        "tariff_type": TARIFF_GENERAL,
+        "transfer_day": 5.89,
+        "transfer_night": 0.0,
+        "transfer_monthly": 24.90,
+        "monthly_fees": {
+            "1x25A (kerrostalo)": 9.50,
+            "3x25A": 24.90,
+            "3x35A": 36.50,
+            "3x50A": 51.90,
+            "3x63A": 65.40,
+        },
+        "day_start": 7,
+        "day_end": 22,
+        "saturday_winter": False,
+    },
+    "kymenlaakson_sahkoverkko_yleis": {
+        "name": "Kymenlaakson Sähköverkko – Yleissiirto",
+        "provider": "kymenlaakson_sahkoverkko",
+        "tariff_type": TARIFF_GENERAL,
+        "transfer_day": 5.15,
+        "transfer_night": 0.0,
+        "transfer_monthly": 19.50,
+        "monthly_fees": {
+            "1x25A (kerrostalo)": 7.40,
+            "3x25A": 19.50,
+            "3x35A": 28.90,
+            "3x50A": 41.20,
+            "3x63A": 51.80,
+        },
+        "day_start": 7,
+        "day_end": 22,
+        "saturday_winter": False,
+    },
+    "pks_sahkonsiirto_yleis": {
+        "name": "PKS Sähkönsiirto – Yleissiirto",
+        "provider": "pks",
+        "tariff_type": TARIFF_GENERAL,
+        "transfer_day": 5.38,
+        "transfer_night": 0.0,
+        "transfer_monthly": 21.80,
+        "monthly_fees": {
+            "1x25A (kerrostalo)": 8.10,
+            "3x25A": 21.80,
+            "3x35A": 32.10,
+            "3x50A": 45.60,
+            "3x63A": 57.40,
+        },
+        "day_start": 7,
+        "day_end": 22,
+        "saturday_winter": False,
+    },
+    "vaasan_sahkoverkko_yleis": {
+        "name": "Vaasan Sähköverkko – Yleissiirto",
+        "provider": "vaasan_sahkoverkko",
+        "tariff_type": TARIFF_GENERAL,
+        "transfer_day": 4.28,
+        "transfer_night": 0.0,
+        "transfer_monthly": 11.40,
+        "monthly_fees": {
+            "1x25A (kerrostalo)": 5.10,
+            "3x25A": 11.40,
+            "3x35A": 17.20,
+            "3x50A": 24.60,
+            "3x63A": 31.10,
+        },
+        "day_start": 7,
+        "day_end": 22,
+        "saturday_winter": False,
+    },
+}
+
+
+async def async_fetch_tariffs(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
+    """Hae ajantasaiset verkkoyhtiöiden hinnastot verkosta tai käytä paikallista varmuuskopiota."""
+    session = async_get_clientsession(hass)
+    try:
+        async with session.get(REMOTE_TARIFFS_URL, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+            if resp.status == 200:
+                data = await resp.json(content_type=None)
+                if isinstance(data, dict) and data:
+                    return {**BUILTIN_TARIFFS, **data}
+    except Exception as err:
+        _LOGGER.debug("Etähinnaston haku epäonnistui, käytetään sisäänrakennettua: %s", err)
+
+    return BUILTIN_TARIFFS
