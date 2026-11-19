@@ -35,6 +35,7 @@ from .const import (
     MODE_TRANSFER_ONLY,
     SOLAR_MODE_RENTED,
     TARIFF_GENERAL,
+    TARIFF_OTHER,
     TARIFF_SEASONAL,
     TARIFF_TIME,
 )
@@ -45,7 +46,7 @@ def is_day_or_winter_weekday(dt_obj: datetime, config: dict[str, Any]) -> bool:
     local_dt = dt_util.as_local(dt_obj)
     tariff = config.get(CONF_TARIFF_TYPE, TARIFF_GENERAL)
 
-    if tariff == TARIFF_GENERAL:
+    if tariff in (TARIFF_GENERAL, TARIFF_OTHER):
         return True
 
     day_start = int(config.get(CONF_DAY_START, DEFAULT_DAY_START))

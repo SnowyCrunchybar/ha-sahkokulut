@@ -1,4 +1,4 @@
-# Sähkökulut (`ha-sahkokulut`)
+# Sähkökulut
 
 > **Work in Progress (WIP):** Tämä integraatio on aktiivisessa kehitysvaiheessa. Laskentaa ja ominaisuuksia parannetaan jatkuvasti – testaa ja raportoi mahdolliset havainnot [Issues-sivulla](https://github.com/SnowyCrunchybar/ha-sahkokulut/issues).
 
@@ -13,8 +13,8 @@ HACS-yhteensopiva Home Assistant -integraatio sähkön kokonaiskustannusten (sä
    - **Kiinteähintainen sopimus + siirto**
    - **Hybridisopimus (Välkkysähkö) + siirto**
    - **Pelkkä sähkönsiirto ja sähkövero**
-   - **Avaa lisävalinnat (aurinkopaneelit)** – kun valittuna, avaa aurinkopaneeli-/tuottovaiheen (*Vaihe 3*), jossa voit valita paneelin tyypin (oma aurinkopaneeli + myynti, oma paneeli ilman myyntiä / esim. invertteri, HAN tai Epever, tai nimikkopaneeli/vuokrapaneeli kuten Helen Nimikkopaneeli) sekä mahdollisen kuukausimaksun (`€/kk`).
-2. **Oma verkkoyhtiö ja siirtotuote:** Syötät vapaasti siirtoyhtiön nimen (esim. *Alva Sähköverkko*), siirtotuotteen nimen (esim. *Yleissiirto*, *Yleissiirto 5*, *Kausisiirto*) ja hinnat (`snt/kWh`, `€/kk`).
+   - **Avaa lisävalinnat (aurinkopaneelit)** – avaa aurinkopaneeli-/tuottovaiheen (*Vaihe 3*). Vuokrapaneeli-/nimikkopaneelivaihtoehdossa kysytään vain kuukausimaksu (`€/kk`) ja kerrotaan, että sen tuottama sähkö hyvitetään automaattisesti sähkömyyjän päässä.
+2. **Sähkönsiirtoyhtiö ja siirtotariffit:** Syötät vapaasti siirtoyhtiön nimen (esim. *Alva Sähköverkko*), siirtotuotteen nimen (esim. *Yleissiirto*, *Yleissiirto 5*, *Kausisiirto*) ja valitset tariffityypin (**Yleis**, **Aika**, **Kausi** tai **Muu**), jolloin näytetään vain kyseiseen tariffiin liittyvät hinta- ja aikakentät.
 3. **Välkkysähkön jälkilaskenta:** Palvelukutsu `sahkokulut.recalculate_period` päivittää valitun aikavälin tilastot toteutuneella kulutusvaikutuksella (`snt/kWh`).
 
 ## Asennus (HACS)

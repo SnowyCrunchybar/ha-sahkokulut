@@ -23,40 +23,41 @@
       },
       "solar": {
         "title": "Vaihe 3 – Aurinkopaneelit ja tuotto",
-        "description": "Valitse aurinkopaneelin tai nimikkopaneelin tyyppi sekä tuotto- tai myyntisensori.",
+        "description": "Valitse aurinkopaneelin tai vuokrapaneelin tyyppi sekä mahdollinen tuotto- tai myyntisensori.",
         "data": {
           "solar_option": "Aurinkopaneeli / tuotto",
-          "discovered_solar": "Tunnistettu aurinko- / nimikkopaneelisensori",
+          "discovered_solar": "Tunnistettu aurinkosensori",
           "solar_sensor": "Aurinkosensori itse valittuna (kWh)"
         }
       },
       "solar_rented": {
-        "title": "Vaihe 3B – Nimikkopaneeli / vuokrapaneeli",
-        "description": "Syötä nimikkopaneelin tai vuokrapaneelin kuukausimaksu (€/kk) sekä hyvitysasetukset.",
+        "title": "Vuokra- / nimikkopaneeli",
+        "description": "Vuokrapaneelin tuottama sähkö hyvitetään automaattisesti sähkömyyjän päässä. Syötä vain paneelin kuukausihinta (€/kk).",
         "data": {
-          "solar_monthly_fee": "Paneelin / vuokran kuukausimaksu (€/kk)",
-          "solar_source_type": "Aurinkosensorin päivitystapa",
-          "solar_deduct_total": "Vähennä hyvitys suoraan kertyneestä kokonaiskustannuksesta",
-          "solar_margin": "Sähkönmyynnin välityspalkkio (snt/kWh)",
-          "solar_transfer_fee": "Verkkoyhtiön tuotannon siirtomaksu (snt/kWh)",
-          "solar_spot_vat": "Hintasensori sisältää ALV 25,5 % (poista ALV hyvityksestä)"
+          "solar_monthly_fee": "Vuokrapaneelin kuukausihinta (€/kk)"
         }
       },
-      "transfer": {
-        "title": "Sähkönsiirtoyhtiö, tuote ja hinnat",
-        "description": "Syötä sähkönsiirtoyhtiö (esim. Alva Sähköverkko), siirtotuotteen nimi (esim. Yleissiirto, Yleissiirto 5 tai Kausisiirto) ja hinnat (snt/kWh, sis. ALV).",
+      "transfer_type": {
+        "title": "Sähkönsiirtoyhtiö ja siirtotariffi",
+        "description": "Syötä sähkönsiirtoyhtiö, siirtotuotteen nimi ja valitse siirtotariffi.",
         "data": {
           "dso_name": "Sähkönsiirtoyhtiö",
           "tariff_name": "Siirtotuotteen nimi",
-          "tariff_type": "Siirtotariffi",
-          "transfer_day": "Siirtohinta – yleis / päivä / talviarkipäivä (snt/kWh)",
+          "tariff_type": "Siirtotariffi"
+        }
+      },
+      "transfer": {
+        "title": "Siirtotariffin maksut ja ehdot",
+        "description": "Syötä valittuun siirtotariffiin liittyvät maksut (snt/kWh ja €/kk).",
+        "data": {
+          "transfer_day": "Siirtohinta (snt/kWh)",
           "transfer_night": "Siirtohinta – yö / muu aika (snt/kWh)",
           "day_start": "Päiväajan alkutunti (0–23)",
           "day_end": "Päiväajan päättymistunti (1–24)",
           "saturday_winter": "Lasketaanko lauantai talviarkipäiväksi?",
-          "electricity_tax": "Sähkövero + huoltovarmuusmaksu (snt/kWh)",
-          "transfer_monthly": "Siirron perusmaksu (€/kk)",
-          "include_monthly_fees": "Sisällytä perusmaksut kertyneeseen kustannukseen (päiväkohtainen osuus)"
+          "electricity_tax": "Sähkövero (snt/kWh)",
+          "transfer_monthly": "Perusmaksu (€/kk)",
+          "include_monthly_fees": "Sisällytä perusmaksut kertyneeseen kustannukseen"
         }
       },
       "energy": {
@@ -79,13 +80,13 @@
         "data": {
           "dso_name": "Sähkönsiirtoyhtiö",
           "tariff_name": "Siirtotuotteen nimi",
-          "transfer_day": "Siirtohinta – yleis / päivä / talviarkipäivä (snt/kWh)",
+          "transfer_day": "Siirtohinta (snt/kWh)",
           "transfer_night": "Siirtohinta – yö / muu aika (snt/kWh)",
-          "transfer_monthly": "Siirron perusmaksu (€/kk)",
+          "transfer_monthly": "Perusmaksu (€/kk)",
           "energy_monthly": "Energian perusmaksu (€/kk)",
-          "solar_monthly_fee": "Paneelin / vuokran kuukausimaksu (€/kk)",
+          "solar_monthly_fee": "Vuokrapaneelin kuukausihinta (€/kk)",
           "include_monthly_fees": "Sisällytä perusmaksut kertyneeseen kustannukseen",
-          "electricity_tax": "Sähkövero + huoltovarmuusmaksu (snt/kWh)",
+          "electricity_tax": "Sähkövero (snt/kWh)",
           "fixed_price": "Kiinteä hinta / Välkkysähkön perushinta (snt/kWh)",
           "margin": "Välityspalkkio / marginaali (snt/kWh)",
           "solar_margin": "Aurinkomyynnin välityspalkkio (snt/kWh)",
