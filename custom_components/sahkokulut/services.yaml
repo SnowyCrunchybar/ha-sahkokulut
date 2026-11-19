@@ -1,0 +1,24 @@
+recalculate_period:
+  name: Laske jakso uudelleen
+  description: Päivittää valitun aikavälin sähkökustannustilastot uudelleen (esim. välkkysähkön toteutuneella kulutusvaikutuksella).
+  fields:
+    start_time:
+      name: Alkuaika
+      required: true
+      selector:
+        datetime:
+    end_time:
+      name: Loppuaika
+      required: true
+      selector:
+        datetime:
+    consumption_effect_cents:
+      name: Toteutunut kulutusvaikutus (snt/kWh)
+      description: Esimerkiksi -1.45 tai 0.82. Jätä tyhjäksi, jos lasketaan sopimuksen vakioarvoilla.
+      required: false
+      selector:
+        number:
+          min: -100
+          max: 100
+          step: 0.001
+          mode: box

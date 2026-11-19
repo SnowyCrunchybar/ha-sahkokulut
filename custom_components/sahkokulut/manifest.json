@@ -1,0 +1,11 @@
+{
+  "domain": "sahkokulut",
+  "name": "Sähkökulut",
+  "codeowners": ["@SnowyCrunchybar"],
+  "config_flow": true,
+  "dependencies": ["recorder"],
+  "documentation": "https://github.com/SnowyCrunchybar/ha-sahkokulut",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/SnowyCrunchybar/ha-sahkokulut/issues",
+  "version": "0.1.0"
+}

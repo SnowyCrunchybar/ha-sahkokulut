@@ -1,0 +1,112 @@
+{
+  "helen_yleis": {
+    "name": "Helen Sähköverkko – Yleissiirto",
+    "provider": "helen",
+    "tariff_type": "general",
+    "transfer_day": 4.08,
+    "transfer_night": 0.0,
+    "transfer_monthly": 5.51,
+    "day_start": 7,
+    "day_end": 22,
+    "saturday_winter": false
+  },
+  "helen_aika": {
+    "name": "Helen Sähköverkko – Aikasiirto",
+    "provider": "helen",
+    "tariff_type": "time",
+    "transfer_day": 4.82,
+    "transfer_night": 2.46,
+    "transfer_monthly": 16.53,
+    "day_start": 7,
+    "day_end": 22,
+    "saturday_winter": false
+  },
+  "caruna_yleis": {
+    "name": "Caruna – Yleissiirto",
+    "provider": "caruna",
+    "tariff_type": "general",
+    "transfer_day": 5.29,
+    "transfer_night": 0.0,
+    "transfer_monthly": 19.90,
+    "day_start": 7,
+    "day_end": 22,
+    "saturday_winter": false
+  },
+  "caruna_aika": {
+    "name": "Caruna – Yösiirto",
+    "provider": "caruna",
+    "tariff_type": "time",
+    "transfer_day": 5.95,
+    "transfer_night": 3.12,
+    "transfer_monthly": 28.50,
+    "day_start": 7,
+    "day_end": 22,
+    "saturday_winter": false
+  },
+  "caruna_kausi": {
+    "name": "Caruna – Kausisiirto",
+    "provider": "caruna",
+    "tariff_type": "seasonal",
+    "transfer_day": 6.85,
+    "transfer_night": 2.95,
+    "transfer_monthly": 28.50,
+    "day_start": 7,
+    "day_end": 22,
+    "saturday_winter": true
+  },
+  "caruna_espoo_yleis": {
+    "name": "Caruna Espoo – Yleissiirto",
+    "provider": "caruna_espoo",
+    "tariff_type": "general",
+    "transfer_day": 3.92,
+    "transfer_night": 0.0,
+    "transfer_monthly": 7.90,
+    "day_start": 7,
+    "day_end": 22,
+    "saturday_winter": false
+  },
+  "elenia_yleis": {
+    "name": "Elenia – Yleissiirto",
+    "provider": "elenia",
+    "tariff_type": "general",
+    "transfer_day": 5.45,
+    "transfer_night": 0.0,
+    "transfer_monthly": 18.60,
+    "day_start": 7,
+    "day_end": 22,
+    "saturday_winter": false
+  },
+  "elenia_aika": {
+    "name": "Elenia – Aikasiirto",
+    "provider": "elenia",
+    "tariff_type": "time",
+    "transfer_day": 6.10,
+    "transfer_night": 3.05,
+    "transfer_monthly": 25.40,
+    "day_start": 7,
+    "day_end": 22,
+    "saturday_winter": false
+  },
+  "alva_yleis": {
+    "name": "Alva Sähköverkko – Yleissiirto",
+    "provider": "alva",
+    "tariff_type": "general",
+    "transfer_day": 4.35,
+    "transfer_night": 0.0,
+    "transfer_monthly": 12.90,
+    "day_start": 7,
+    "day_end": 22,
+    "saturday_winter": false
+  },
+  "alva_aika": {
+    "name": "Alva Sähköverkko – Aikasiirto",
+    "provider": "alva",
+    "tariff_type": "time",
+    "transfer_day": 4.95,
+    "transfer_night": 2.55,
+    "transfer_monthly": 19.50,
+    "day_start": 7,
+    "day_end": 22,
+    "saturday_winter": false
+  }
+}

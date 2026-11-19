@@ -1,0 +1,70 @@
+{
+  "config": {
+    "step": {
+      "discover": {
+        "title": "Löydettiin valmiita sähköintegraatioita",
+        "description": "Järjestelmästä tunnistettiin olemassa olevia kulutus-, siirto- tai hintasensoreita (esim. Oma Helen, Elenia, Caruna, Fortum tai Nord Pool). Haluatko ottaa ne suoraan käyttöön?",
+        "data": {
+          "use_discovered": "Käytä tunnistettuja integraatioita automaattisesti",
+          "discovered_energy": "Tunnistettu kulutusmittari (kWh)",
+          "discovered_transfer": "Tunnistettu siirtohintasensori (valinnainen)",
+          "discovered_spot": "Tunnistettu pörssisähkö- tai hintasensori",
+          "dso_product": "Sähkönsiirtoyhtiö ja tuote",
+          "calc_mode": "Laskentatapa"
+        }
+      },
+      "manual_setup": {
+        "title": "Sähkökulut – Perusasetukset",
+        "description": "Valitse energiamittari, tiedon päivitystapa ja verkkoyhtiö.",
+        "data": {
+          "energy_sensor": "Energiamittari (kWh)",
+          "source_type": "Mittarin päivitystapa",
+          "dso_product": "Sähkönsiirtoyhtiö ja tuote",
+          "calc_mode": "Laskentatapa"
+        }
+      },
+      "transfer": {
+        "title": "Sähkönsiirron hinnat",
+        "description": "Tarkista tai syötä hinnat arvonlisäveroineen (snt/kWh).",
+        "data": {
+          "tariff_type": "Siirtotariffi",
+          "transfer_day": "Siirtohinta – yleis / päivä / talviarkipäivä (snt/kWh)",
+          "transfer_night": "Siirtohinta – yö / muu aika (snt/kWh)",
+          "day_start": "Päiväajan alkutunti (0–23)",
+          "day_end": "Päiväajan päättymistunti (1–24)",
+          "saturday_winter": "Lasketaanko lauantai talviarkipäiväksi?",
+          "electricity_tax": "Sähkövero + huoltovarmuusmaksu (snt/kWh)",
+          "transfer_monthly": "Siirron perusmaksu (€/kk)",
+          "auto_update_tariff": "Päivitä verkkoyhtiön siirtohinnat automaattisesti"
+        }
+      },
+      "energy": {
+        "title": "Sähkösopimuksen hinnat",
+        "description": "Määritä sähköenergian hinnoittelu.",
+        "data": {
+          "contract_type": "Sopimustyyppi",
+          "fixed_price": "Kiinteä hinta / Välkkysähkön perushinta (snt/kWh)",
+          "spot_sensor": "Pörssisähkön hintasensori (snt/kWh tai €/kWh)",
+          "margin": "Välityspalkkio / marginaali (snt/kWh)",
+          "energy_monthly": "Energian perusmaksu (€/kk)"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Päivitä sähkön ja siirron hinnat",
+        "description": "Muokkaa hintatietoja (snt/kWh, sis. ALV).",
+        "data": {
+          "transfer_day": "Siirtohinta – yleis / päivä / talviarkipäivä (snt/kWh)",
+          "transfer_night": "Siirtohinta – yö / muu aika (snt/kWh)",
+          "electricity_tax": "Sähkövero + huoltovarmuusmaksu (snt/kWh)",
+          "fixed_price": "Kiinteä hinta / Välkkysähkön perushinta (snt/kWh)",
+          "margin": "Marginaali (snt/kWh)",
+          "auto_update_tariff": "Päivitä verkkoyhtiön siirtohinnat automaattisesti"
+        }
+      }
+    }
+  }
+}
