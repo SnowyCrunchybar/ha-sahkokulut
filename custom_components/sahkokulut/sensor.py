@@ -42,6 +42,7 @@ from .const import (
     CONF_FUSE_SIZE,
     CONF_INCLUDE_MONTHLY_FEES,
     CONF_SOLAR_DEDUCT_FROM_TOTAL,
+    CONF_SOLAR_MONTHLY_FEE,
     CONF_SOLAR_SENSOR,
     CONF_SOLAR_SOURCE_TYPE,
     CONF_SOURCE_TYPE,
@@ -424,6 +425,13 @@ class SahkokulutTotalCostSensor(RestoreEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         return {
+<<<<<<< Updated upstream
+=======
+            "dso_name": self._config.get(CONF_DSO_NAME, ""),
+            "tariff_name": self._config.get(CONF_TARIFF_NAME, ""),
+            "transfer_monthly": self._config.get(CONF_TRANSFER_MONTHLY, 0.0),
+            "solar_monthly_fee": self._config.get(CONF_SOLAR_MONTHLY_FEE, 0.0),
+>>>>>>> Stashed changes
             "last_kwh": self._last_kwh,
             "last_solar_kwh": self._last_solar_kwh,
             "last_fee_date": self._last_fee_date,

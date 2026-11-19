@@ -19,6 +19,7 @@ from .const import (
     CONF_SATURDAY_WINTER,
     CONF_SOLAR_MARGIN,
     CONF_SOLAR_MODE,
+    CONF_SOLAR_MONTHLY_FEE,
     CONF_SOLAR_SPOT_VAT_INCLUDED,
     CONF_SOLAR_TRANSFER_FEE,
     CONF_TARIFF_TYPE,
@@ -115,7 +116,7 @@ def get_total_price_eur_per_kwh(
 
 
 def get_daily_fixed_fee_eur(dt_obj: datetime, config: dict[str, Any]) -> float:
-    """Laske päiväkohtainen perusmaksu (€/päivä) kuukauden päivien mukaan."""
+    """Laske päiväkohtainen perusmaksu (€/päivä) kuukauden päivien mukaan (sis. siirto, energia ja paneelimaksu)."""
     local_dt = dt_util.as_local(dt_obj)
     days_in_month = calendar.monthrange(local_dt.year, local_dt.month)[1]
     transfer_monthly = float(config.get(CONF_TRANSFER_MONTHLY, 0.0))
@@ -124,7 +125,8 @@ def get_daily_fixed_fee_eur(dt_obj: datetime, config: dict[str, Any]) -> float:
         if config.get(CONF_CALC_MODE) == MODE_TRANSFER_ONLY
         else float(config.get(CONF_ENERGY_MONTHLY, 0.0))
     )
-    total_monthly = transfer_monthly + energy_monthly
+    solar_monthly = float(config.get(CONF_SOLAR_MONTHLY_FEE, 0.0))
+    total_monthly = transfer_monthly + energy_monthly + solar_monthly
     if total_monthly <= 0:
         return 0.0
     return round(total_monthly / days_in_month, 6)

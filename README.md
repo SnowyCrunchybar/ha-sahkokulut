@@ -8,12 +8,22 @@ HACS-yhteensopiva Home Assistant -integraatio sähkön kokonaiskustannusten (sä
 
 ## Ominaisuudet
 
+<<<<<<< Updated upstream
 - **Automaattinen tunnistus:** Etsii asennuksessa olemassa olevat kulutus-, siirto-, aurinkotuotto- ja pörssisähkösensorit (esim. *Oma Helen* ml. Nimikkopaneeli, *Elenia*, *Caruna*, *Fortum*, *Fingrid Datahub*, *Nord Pool*, *Entso-E*, *Sähkön hinta nyt*).
 - **Suomen verkkoyhtiöt ja sulakekoot (`tariffs.json`):** Sisältää valmiit hinnastot ja pääsulakekokojen (1x25A – 3x63A) mukaiset perusmaksut useille suomalaisille verkkoyhtiöille (mm. Helen, Caruna, Caruna Espoo, Elenia, Alva, Vantaan Energia, Turku Energia, Oulun Energia, Tampereen Energia, Savon Voima, Kymenlaakson Sähköverkko, PKS, Vaasan Sähköverkko).
 - **Automaattinen hinnastopäivitys:** Integraatio tarkistaa kerran vuorokaudessa `tariffs.json`-päivitykset, ja mukana tuleva GitHub Actions -työnkulku valvoo yhtiöiden hinnastomuutoksia viikoittain.
 - **Päivittäinen perusmaksujen jyvitys:** Lisää kuukausittaiset perusmaksut (`€/kk / kuukauden päivät`) automaattisesti vuorokauden vaihtuessa kokonaiskustannuksiin (valittavissa asetuksista).
 - **Aurinkopaneelin tuotto ja myyntihyvitys:** Vähentää verkkoon myydyn ylijäämäsähkön tai Helenin Nimikkopaneelin tuoton (ALV 0 % spot-hinta - välityspalkkio - tuotannon siirtomaksu) suoraan kertyneistä kuluista ja tuottaa erillisen `sensor.sahkokulut_myyntihyvitys` -sensorin.
 - **Välkkysähkön jälkilaskenta:** Palvelukutsu `sahkokulut.recalculate_period` päivittää valitun aikavälin tilastot toteutuneella kulutusvaikutuksella (snt/kWh).
+=======
+- **Oma verkkoyhtiö ja siirtotuote:** Syötät vapaasti siirtoyhtiön nimen (esim. *Alva Sähköverkko*) ja siirtotuotteen nimen (esim. *Yleissiirto*, *Yleissiirto 5* tai *Kausisiirto*) sekä omat energiamaksut (`snt/kWh`) ja kuukausiperusmaksun (`€/kk`).
+- **Joustava määritystyönkulku:** Kysyy aluksi muun muassa pörssisähkön käytöstä (avaa tunnistetun pörssisähkön hintasensorin tai muun hintasensorin/valinnan) sekä aurinkopaneelin käytöstä (oma paneeli vs. nimikkopaneeli/vuokrapaneeli, mukaan lukien kuukausimaksu `€/kk`).
+- **Joustavat siirtotariffit:** Tukee yleissiirtoa, aikasiirtoa (päivä/yö) sekä kausisiirtoa (talviarkipäivä / muu aika, mukaan lukien lauantai-asetus).
+- **Automaattinen anturitunnistus:** Etsii asennuksessa olemassa olevat kulutus-, aurinkotuotto-, siirto- ja hintasensorit (esim. *Oma Helen* ml. Nimikkopaneeli, *Elenia*, *Caruna*, *Fortum*, *Fingrid Datahub*, *Nord Pool*, *Entso-E*, *Sähkön hinta nyt*).
+- **Päivittäinen perusmaksujen jyvitys:** Lisää kuukausittaiset perusmaksut (`€/kk / kuukauden päivät`) automaattisesti vuorokauden vaihtuessa kertyneisiin kustannuksiin.
+- **Aurinkopaneelin tuotto ja myyntihyvitys:** Vähentää verkkoon myydyn ylijäämäsähkön tai Helenin Nimikkopaneelin tuoton (ALV 0 % spot-hinta - välityspalkkio - tuotannon siirtomaksu) kertyneistä kuluista ja tuottaa erillisen `sensor.sahkokulut_myyntihyvitys` -sensorin.
+- **Välkkysähkön jälkilaskenta:** Palvelukutsu `sahkokulut.recalculate_period` päivittää valitun aikavälin tilastot toteutuneella kulutusvaikutuksella (`snt/kWh`).
+>>>>>>> Stashed changes
 
 ## Asennus (HACS)
 
