@@ -1,4 +1,4 @@
-# Sähkökulut (`ha-sahkokulut`)
+# Sähkökulut
 
 > **Work in Progress (WIP):** Tämä integraatio on aktiivisessa kehitysvaiheessa. Hinnastojen tarkkuutta, laskentaa ja ominaisuuksia parannetaan jatkuvasti – testaa ja raportoi mahdolliset havainnot [Issues-sivulla](https://github.com/SnowyCrunchybar/ha-sahkokulut/issues).
 
