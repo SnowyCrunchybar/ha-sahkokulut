@@ -10,24 +10,24 @@
         }
       },
       "sensors": {
-        "title": "Vaihe 2 – Mittarit ja hintasensorit",
-        "description": "Valitse kulutusmittari ja tarvittaessa pörssisähkö- tai hintasensori.",
+        "title": "Vaihe 2 – Mittarit ja anturit",
+        "description": "Valitse kulutusmittari ja tarvittaessa pörssisähköanturi.",
         "data": {
           "discovered_energy": "Tunnistettu kulutusmittari (kWh)",
           "energy_sensor": "Kulutusmittari (kWh)",
           "source_type": "Kulutusmittarin päivitystapa",
-          "discovered_spot": "Tunnistettu pörssisähkö- tai hintasensori",
-          "spot_sensor": "Hintasensori itse valittuna",
-          "discovered_transfer": "Tunnistettu siirtohintasensori (valinnainen)"
+          "discovered_spot": "Tunnistettu pörssisähköanturi",
+          "spot_sensor": "Pörssisähköanturi itse valittuna",
+          "discovered_transfer": "Tunnistettu siirtohinta-anturi (valinnainen)"
         }
       },
       "solar": {
         "title": "Vaihe 3 – Aurinkopaneelit ja tuotto",
-        "description": "Valitse aurinkopaneelin tai vuokrapaneelin tyyppi sekä mahdollinen tuotto- tai myyntisensori.",
+        "description": "Valitse aurinkopaneelin tai vuokrapaneelin tyyppi sekä mahdollinen tuotto- tai myyntianturi.",
         "data": {
           "solar_option": "Aurinkopaneeli / tuotto",
-          "discovered_solar": "Tunnistettu aurinkosensori",
-          "solar_sensor": "Aurinkosensori itse valittuna (kWh)"
+          "discovered_solar": "Tunnistettu aurinkoanturi",
+          "solar_sensor": "Aurinkoanturi itse valittuna (kWh)"
         }
       },
       "solar_rented": {
@@ -61,11 +61,11 @@
         }
       },
       "energy": {
-        "title": "Sähkösopimuksen hinnat",
-        "description": "Syötä valitun sähkösopimuksen hinnat ja perusmaksut.",
+        "title": "Sopimusten hinnat",
+        "description": "Syötä sopimuksen hinnat ja perusmaksut.",
         "data": {
-          "fixed_price": "Kiinteä hinta / Välkkysähkön perushinta (snt/kWh)",
-          "spot_sensor": "Hintasensori (snt/kWh tai €/kWh)",
+          "fixed_price": "Kiinteä hinta / Perushinta (snt/kWh)",
+          "spot_sensor": "Pörssisähköanturi (snt/kWh tai €/kWh)",
           "margin": "Välityspalkkio / marginaali (snt/kWh)",
           "energy_monthly": "Energian perusmaksu (€/kk)"
         }
@@ -87,7 +87,7 @@
           "solar_monthly_fee": "Vuokrapaneelin kuukausihinta (€/kk)",
           "include_monthly_fees": "Sisällytä perusmaksut kertyneeseen kustannukseen",
           "electricity_tax": "Sähkövero (snt/kWh)",
-          "fixed_price": "Kiinteä hinta / Välkkysähkön perushinta (snt/kWh)",
+          "fixed_price": "Kiinteä hinta / Perushinta (snt/kWh)",
           "margin": "Välityspalkkio / marginaali (snt/kWh)",
           "solar_margin": "Aurinkomyynnin välityspalkkio (snt/kWh)",
           "solar_transfer_fee": "Tuotannon siirtomaksu (snt/kWh)",
