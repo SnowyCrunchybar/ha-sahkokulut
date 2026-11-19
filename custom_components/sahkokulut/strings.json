@@ -1,26 +1,45 @@
 {
   "config": {
     "step": {
-      "discover": {
-        "title": "Löydettiin valmiita sähköintegraatioita",
-        "description": "Järjestelmästä tunnistettiin olemassa olevia kulutus-, aurinkotuotto-, siirto- tai hintasensoreita. Haluatko ottaa ne suoraan käyttöön?",
+      "user": {
+        "title": "Sähkökulut – Mitä haluat seurata?",
+        "description": "Valitse seurattava kokonaisuus. Voit halutessasi avata aurinkopaneelien lisävalinnat alla olevalla täpillä.",
         "data": {
-          "use_discovered": "Käytä tunnistettuja antureita automaattisesti",
-          "discovered_energy": "Tunnistettu kulutusmittari (kWh)",
-          "discovered_solar": "Tunnistettu aurinkotuotto- / myyntisensori (valinnainen)",
-          "discovered_transfer": "Tunnistettu siirtohintasensori (valinnainen)",
-          "discovered_spot": "Tunnistettu pörssisähkö- tai hintasensori",
-          "calc_mode": "Laskentatapa"
+          "follow_mode": "Mitä haluat seurata?",
+          "open_solar_options": "Avaa lisävalinnat (aurinkopaneelit)"
         }
       },
-      "manual_setup": {
-        "title": "Sähkökulut – Perusasetukset",
-        "description": "Valitse energiamittari ja mahdollinen aurinkotuottomittari.",
+      "sensors": {
+        "title": "Vaihe 2 – Mittarit ja hintasensorit",
+        "description": "Valitse kulutusmittari ja tarvittaessa pörssisähkö- tai hintasensori.",
         "data": {
-          "energy_sensor": "Energiamittari (kWh)",
-          "source_type": "Mittarin päivitystapa",
-          "solar_sensor": "Aurinkopaneelin tuotto- / myyntisensori (kWh, valinnainen)",
-          "calc_mode": "Laskentatapa"
+          "discovered_energy": "Tunnistettu kulutusmittari (kWh)",
+          "energy_sensor": "Kulutusmittari (kWh)",
+          "source_type": "Kulutusmittarin päivitystapa",
+          "discovered_spot": "Tunnistettu pörssisähkö- tai hintasensori",
+          "spot_sensor": "Hintasensori itse valittuna",
+          "discovered_transfer": "Tunnistettu siirtohintasensori (valinnainen)"
+        }
+      },
+      "solar": {
+        "title": "Vaihe 3 – Aurinkopaneelit ja tuotto",
+        "description": "Valitse aurinkopaneelin tai nimikkopaneelin tyyppi sekä tuotto- tai myyntisensori.",
+        "data": {
+          "solar_option": "Aurinkopaneeli / tuotto",
+          "discovered_solar": "Tunnistettu aurinko- / nimikkopaneelisensori",
+          "solar_sensor": "Aurinkosensori itse valittuna (kWh)"
+        }
+      },
+      "solar_rented": {
+        "title": "Vaihe 3B – Nimikkopaneeli / vuokrapaneeli",
+        "description": "Syötä nimikkopaneelin tai vuokrapaneelin kuukausimaksu (€/kk) sekä hyvitysasetukset.",
+        "data": {
+          "solar_monthly_fee": "Paneelin / vuokran kuukausimaksu (€/kk)",
+          "solar_source_type": "Aurinkosensorin päivitystapa",
+          "solar_deduct_total": "Vähennä hyvitys suoraan kertyneestä kokonaiskustannuksesta",
+          "solar_margin": "Sähkönmyynnin välityspalkkio (snt/kWh)",
+          "solar_transfer_fee": "Verkkoyhtiön tuotannon siirtomaksu (snt/kWh)",
+          "solar_spot_vat": "Hintasensori sisältää ALV 25,5 % (poista ALV hyvityksestä)"
         }
       },
       "transfer": {
@@ -42,26 +61,12 @@
       },
       "energy": {
         "title": "Sähkösopimuksen hinnat",
-        "description": "Määritä sähköenergian hinnoittelu.",
+        "description": "Syötä valitun sähkösopimuksen hinnat ja perusmaksut.",
         "data": {
-          "contract_type": "Sopimustyyppi",
           "fixed_price": "Kiinteä hinta / Välkkysähkön perushinta (snt/kWh)",
-          "spot_sensor": "Pörssisähkön hintasensori (snt/kWh tai €/kWh)",
+          "spot_sensor": "Hintasensori (snt/kWh tai €/kWh)",
           "margin": "Välityspalkkio / marginaali (snt/kWh)",
           "energy_monthly": "Energian perusmaksu (€/kk)"
-        }
-      },
-      "solar": {
-        "title": "Aurinkopaneelin tuotto ja myyntihyvitys",
-        "description": "Määritä miten aurinkopaneelin tuotto tai verkkoon myynti huomioidaan hinnoissa.",
-        "data": {
-          "solar_mode": "Tuoton laskentatapa",
-          "solar_source_type": "Aurinkosensorin päivitystapa",
-          "solar_deduct_total": "Vähennä myyntihyvitys suoraan kertyneestä kokonaiskustannuksesta",
-          "solar_margin": "Sähkönmyynnin välityspalkkio (snt/kWh)",
-          "solar_transfer_fee": "Verkkoyhtiön tuotannon siirtomaksu (snt/kWh)",
-          "solar_monthly_fee": "Aurinkopaneelin kuukausimaksu (€/kk)",
-          "solar_spot_vat": "Hintasensori sisältää ALV 25,5 % (poista ALV myyntihyvityksestä)"
         }
       }
     }
@@ -69,8 +74,8 @@
   "options": {
     "step": {
       "init": {
-        "title": "Päivitä siirtotuote ja hinnat",
-        "description": "Muokkaa verkkoyhtiötä, siirtotuotteen nimeä ja hintoja (snt/kWh ja €/kk).",
+        "title": "Muokkaa asetuksia ja hintoja",
+        "description": "Päivitä verkkoyhtiö, siirtotuotteen nimi, kuukausimaksut (€/kk) ja hinnat (snt/kWh).",
         "data": {
           "dso_name": "Sähkönsiirtoyhtiö",
           "tariff_name": "Siirtotuotteen nimi",
@@ -78,14 +83,14 @@
           "transfer_night": "Siirtohinta – yö / muu aika (snt/kWh)",
           "transfer_monthly": "Siirron perusmaksu (€/kk)",
           "energy_monthly": "Energian perusmaksu (€/kk)",
+          "solar_monthly_fee": "Paneelin / vuokran kuukausimaksu (€/kk)",
           "include_monthly_fees": "Sisällytä perusmaksut kertyneeseen kustannukseen",
           "electricity_tax": "Sähkövero + huoltovarmuusmaksu (snt/kWh)",
           "fixed_price": "Kiinteä hinta / Välkkysähkön perushinta (snt/kWh)",
-          "margin": "Ostosähkön marginaali (snt/kWh)",
+          "margin": "Välityspalkkio / marginaali (snt/kWh)",
           "solar_margin": "Aurinkomyynnin välityspalkkio (snt/kWh)",
           "solar_transfer_fee": "Tuotannon siirtomaksu (snt/kWh)",
-          "solar_monthly_fee": "Aurinkopaneelin kuukausimaksu (€/kk)",
-          "solar_deduct_total": "Vähennä myyntihyvitys kertyneestä kustannuksesta"
+          "solar_deduct_total": "Vähennä hyvitys kertyneestä kustannuksesta"
         }
       }
     }

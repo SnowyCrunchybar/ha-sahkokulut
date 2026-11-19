@@ -1,4 +1,4 @@
-"""Config flow for Sähkökulut integration with manual DSO & tariff entry."""
+"""Config flow and options flow for Sähkökulut integration."""
 from __future__ import annotations
 
 from typing import Any
@@ -6,7 +6,7 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.components.sensor import SensorDeviceClass
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er, selector
 
 from .const import (
@@ -19,13 +19,16 @@ from .const import (
     CONF_ENERGY_MONTHLY,
     CONF_ENERGY_SENSOR,
     CONF_FIXED_PRICE,
+    CONF_FOLLOW_MODE,
     CONF_INCLUDE_MONTHLY_FEES,
     CONF_MARGIN,
+    CONF_OPEN_SOLAR_OPTIONS,
     CONF_SATURDAY_WINTER,
     CONF_SOLAR_DEDUCT_FROM_TOTAL,
     CONF_SOLAR_MARGIN,
     CONF_SOLAR_MODE,
     CONF_SOLAR_MONTHLY_FEE,
+    CONF_SOLAR_OPTION,
     CONF_SOLAR_SENSOR,
     CONF_SOLAR_SOURCE_TYPE,
     CONF_SOLAR_SPOT_VAT_INCLUDED,
@@ -45,10 +48,18 @@ from .const import (
     DEFAULT_DAY_START,
     DEFAULT_TAX,
     DOMAIN,
+    FOLLOW_FIXED_TRANSFER,
+    FOLLOW_HYBRID_TRANSFER,
+    FOLLOW_SPOT_TRANSFER,
+    FOLLOW_TRANSFER_ONLY,
     MODE_TOTAL,
     MODE_TRANSFER_ONLY,
     SOLAR_MODE_RENTED,
     SOLAR_MODE_SURPLUS,
+    SOLAR_OPT_NONE,
+    SOLAR_OPT_OWN_NO_SELL,
+    SOLAR_OPT_OWN_SELL,
+    SOLAR_OPT_RENTED,
     SOURCE_DELAYED_STATS,
     SOURCE_REALTIME,
     TARIFF_GENERAL,
@@ -57,7 +68,7 @@ from .const import (
 )
 
 KNOWN_DELAYED_PLATFORMS = ("elenia", "caruna", "helen", "alva", "fortum", "fingrid", "datahub")
-KNOWN_SPOT_KEYWORDS = ("nordpool", "entsoe", "sahkon_hinta_nyt", "spot", "porssi")
+KNOWN_SPOT_KEYWORDS = ("nordpool", "entsoe", "sahkon_hinta_nyt", "spot", "porssi", "hinta")
 TRANSFER_KEYWORDS = ("siirto", "transfer", "distribution", "verkko")
 SOLAR_KEYWORDS = ("solar", "aurinko", "tuotto", "export", "myynti", "return", "nimikkopaneeli")
 
@@ -75,7 +86,7 @@ def _build_entry_title(data: dict[str, Any]) -> str:
 
 
 def discover_electricity_entities(hass: HomeAssistant) -> dict[str, Any]:
-    """Skannaa asennetut kulutus-, siirto-, aurinko- ja pörssisähkösensorit."""
+    """Skannaa asennetut kulutus-, siirto-, aurinko- ja hintasensorit."""
     ent_reg = er.async_get(hass)
     discovered_energy: list[dict[str, Any]] = []
     discovered_solar: list[dict[str, Any]] = []
@@ -94,7 +105,7 @@ def discover_electricity_entities(hass: HomeAssistant) -> dict[str, Any]:
         unit = str(state.attributes.get("unit_of_measurement", "")).lower()
         platform = (entry.platform or "").lower()
         eid_lower = entry.entity_id.lower()
-        friendly_name = state.attributes.get("friendly_name", entry.entity_id)
+        friendly_name = str(state.attributes.get("friendly_name", entry.entity_id))
 
         is_delayed = any(k in platform or k in eid_lower for k in KNOWN_DELAYED_PLATFORMS)
 
@@ -121,7 +132,7 @@ def discover_electricity_entities(hass: HomeAssistant) -> dict[str, Any]:
                         "label": f"{friendly_name} ({entry.entity_id})",
                     }
                 )
-            elif any(k in platform or k in eid_lower for k in KNOWN_SPOT_KEYWORDS) or "price" in eid_lower or "hinta" in eid_lower:
+            elif any(k in platform or k in eid_lower for k in KNOWN_SPOT_KEYWORDS) or "price" in eid_lower:
                 discovered_spot.append(
                     {
                         "entity_id": entry.entity_id,
@@ -147,178 +158,243 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._discovered: dict[str, Any] = {}
 
     @staticmethod
-    @callback
     def async_get_options_flow(config_entry: config_entries.ConfigEntry):
+        """Return the options flow handler."""
         return SahkokulutOptionsFlowHandler(config_entry)
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None):
-        """Aloitus: skannaa olemassa olevat anturit."""
+        """Vaihe 1: Mitä haluat seurata + täppi lisävalinnoille (aurinkopaneelit)."""
         self._discovered = discover_electricity_entities(self.hass)
 
-        has_known_energy = any(
-            e["source_type"] == SOURCE_DELAYED_STATS for e in self._discovered["energy"]
-        )
-        if (
-            has_known_energy
-            or self._discovered["solar"]
-            or self._discovered["transfer"]
-            or self._discovered["spot"]
-        ):
-            return await self.async_step_discover()
-
-        return await self.async_step_manual_setup()
-
-    async def async_step_discover(self, user_input: dict[str, Any] | None = None):
-        """Vaihe 1A: Ehdotetaan tunnistettuja antureita."""
         if user_input is not None:
-            if user_input.get("use_discovered"):
-                selected_energy = user_input.get("discovered_energy")
-                selected_solar = user_input.get("discovered_solar")
-                selected_transfer = user_input.get("discovered_transfer")
-                selected_spot = user_input.get("discovered_spot")
+            follow_mode = user_input[CONF_FOLLOW_MODE]
+            open_solar = bool(user_input.get(CONF_OPEN_SOLAR_OPTIONS, False))
 
-                if selected_energy:
-                    self._data[CONF_ENERGY_SENSOR] = selected_energy
-                    match = next(
-                        (e for e in self._discovered["energy"] if e["entity_id"] == selected_energy),
-                        None,
+            self._data[CONF_FOLLOW_MODE] = follow_mode
+            self._data[CONF_OPEN_SOLAR_OPTIONS] = open_solar
+
+            if follow_mode == FOLLOW_TRANSFER_ONLY:
+                self._data[CONF_CALC_MODE] = MODE_TRANSFER_ONLY
+                self._data[CONF_CONTRACT_TYPE] = CONTRACT_FIXED
+                self._data[CONF_SPOT_SENSOR] = None
+            elif follow_mode == FOLLOW_SPOT_TRANSFER:
+                self._data[CONF_CALC_MODE] = MODE_TOTAL
+                self._data[CONF_CONTRACT_TYPE] = CONTRACT_SPOT
+            elif follow_mode == FOLLOW_HYBRID_TRANSFER:
+                self._data[CONF_CALC_MODE] = MODE_TOTAL
+                self._data[CONF_CONTRACT_TYPE] = CONTRACT_HYBRID
+            else:
+                self._data[CONF_CALC_MODE] = MODE_TOTAL
+                self._data[CONF_CONTRACT_TYPE] = CONTRACT_FIXED
+                self._data[CONF_SPOT_SENSOR] = None
+
+            if not open_solar:
+                self._data[CONF_SOLAR_OPTION] = SOLAR_OPT_NONE
+                self._data[CONF_SOLAR_SENSOR] = None
+                self._data[CONF_SOLAR_MONTHLY_FEE] = 0.0
+                self._data[CONF_SOLAR_DEDUCT_FROM_TOTAL] = False
+
+            return await self.async_step_sensors()
+
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_FOLLOW_MODE, default=FOLLOW_SPOT_TRANSFER): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[
+                            {"value": FOLLOW_SPOT_TRANSFER, "label": "Pörssisähkö + siirto"},
+                            {"value": FOLLOW_FIXED_TRANSFER, "label": "Kiinteähintainen sopimus + siirto"},
+                            {"value": FOLLOW_HYBRID_TRANSFER, "label": "Hybridisopimus (Välkkysähkö) + siirto"},
+                            {"value": FOLLOW_TRANSFER_ONLY, "label": "Pelkkä sähkönsiirto ja sähkövero"},
+                        ],
+                        mode=selector.SelectSelectorMode.LIST,
                     )
-                    self._data[CONF_SOURCE_TYPE] = (
-                        match["source_type"] if match else SOURCE_DELAYED_STATS
-                    )
+                ),
+                vol.Optional(CONF_OPEN_SOLAR_OPTIONS, default=False): bool,
+            }
+        )
+        return self.async_show_form(step_id="user", data_schema=schema)
 
-                if selected_solar:
-                    self._data[CONF_SOLAR_SENSOR] = selected_solar
-                    smatch = next(
-                        (s for s in self._discovered["solar"] if s["entity_id"] == selected_solar),
-                        None,
-                    )
-                    self._data[CONF_SOLAR_SOURCE_TYPE] = (
-                        smatch["source_type"] if smatch else SOURCE_REALTIME
-                    )
-                    self._data[CONF_SOLAR_MODE] = (
-                        SOLAR_MODE_RENTED
-                        if (smatch and smatch.get("is_rented_solar"))
-                        else SOLAR_MODE_SURPLUS
-                    )
+    async def async_step_sensors(self, user_input: dict[str, Any] | None = None):
+        """Vaihe 2: Kulutusmittari ja mahdollinen hintasensori."""
+        follow_mode = self._data.get(CONF_FOLLOW_MODE, FOLLOW_SPOT_TRANSFER)
+        open_solar = bool(self._data.get(CONF_OPEN_SOLAR_OPTIONS, False))
+        needs_price_sensor = follow_mode in (FOLLOW_SPOT_TRANSFER, FOLLOW_HYBRID_TRANSFER)
 
-                if selected_transfer:
-                    self._data[CONF_TRANSFER_SENSOR] = selected_transfer
+        if user_input is not None:
+            energy_sensor = user_input.get("discovered_energy") or user_input.get(CONF_ENERGY_SENSOR)
+            if energy_sensor:
+                self._data[CONF_ENERGY_SENSOR] = energy_sensor
+                match = next(
+                    (e for e in self._discovered["energy"] if e["entity_id"] == energy_sensor),
+                    None,
+                )
+                self._data[CONF_SOURCE_TYPE] = (
+                    user_input.get(CONF_SOURCE_TYPE)
+                    or (match["source_type"] if match else SOURCE_DELAYED_STATS)
+                )
 
-                if selected_spot:
-                    self._data[CONF_SPOT_SENSOR] = selected_spot
-                    self._data[CONF_CONTRACT_TYPE] = CONTRACT_SPOT
+            if needs_price_sensor:
+                spot_sensor = user_input.get("discovered_spot") or user_input.get(CONF_SPOT_SENSOR)
+                self._data[CONF_SPOT_SENSOR] = spot_sensor or None
 
-                self._data[CONF_CALC_MODE] = user_input[CONF_CALC_MODE]
-                return await self.async_step_transfer()
+            transfer_sensor = user_input.get("discovered_transfer")
+            if transfer_sensor:
+                self._data[CONF_TRANSFER_SENSOR] = transfer_sensor
 
-            return await self.async_step_manual_setup()
+            if open_solar:
+                return await self.async_step_solar()
+            return await self.async_step_transfer()
 
         energy_options = [
             {"value": e["entity_id"], "label": e["label"]}
             for e in self._discovered["energy"]
         ]
-        solar_options = [{"value": "", "label": "Ei aurinkopaneelia / ei käytössä"}] + [
+        spot_options = [{"value": "", "label": "Valitse hintasensori itse tai jätä tyhjäksi"}] + [
             {"value": s["entity_id"], "label": s["label"]}
-            for s in self._discovered["solar"]
+            for s in self._discovered["spot"]
         ]
         transfer_options = [{"value": "", "label": "Ei erillistä siirtosensoria (syötän siirtohinnat)"}] + [
             {"value": t["entity_id"], "label": t["label"]}
             for t in self._discovered["transfer"]
-        ]
-        spot_options = [{"value": "", "label": "Ei käytössä / syötän myöhemmin"}] + [
-            {"value": s["entity_id"], "label": s["label"]}
-            for s in self._discovered["spot"]
         ]
 
         default_energy = next(
             (e["entity_id"] for e in self._discovered["energy"] if e["source_type"] == SOURCE_DELAYED_STATS),
             energy_options[0]["value"] if energy_options else "",
         )
-        default_solar = self._discovered["solar"][0]["entity_id"] if self._discovered["solar"] else ""
-        default_transfer = self._discovered["transfer"][0]["entity_id"] if self._discovered["transfer"] else ""
         default_spot = self._discovered["spot"][0]["entity_id"] if self._discovered["spot"] else ""
+        default_transfer = self._discovered["transfer"][0]["entity_id"] if self._discovered["transfer"] else ""
 
-        fields: dict[Any, Any] = {
-            vol.Required("use_discovered", default=True): bool,
-        }
+        fields: dict[Any, Any] = {}
         if energy_options:
-            fields[vol.Optional("discovered_energy", default=default_energy)] = selector.SelectSelector(
+            fields[vol.Required("discovered_energy", default=default_energy)] = selector.SelectSelector(
                 selector.SelectSelectorConfig(options=energy_options, mode=selector.SelectSelectorMode.DROPDOWN)
             )
-        if len(solar_options) > 1:
-            fields[vol.Optional("discovered_solar", default=default_solar)] = selector.SelectSelector(
-                selector.SelectSelectorConfig(options=solar_options, mode=selector.SelectSelectorMode.DROPDOWN)
-            )
-        if len(transfer_options) > 1:
-            fields[vol.Optional("discovered_transfer", default=default_transfer)] = selector.SelectSelector(
-                selector.SelectSelectorConfig(options=transfer_options, mode=selector.SelectSelectorMode.DROPDOWN)
-            )
-        if len(spot_options) > 1:
-            fields[vol.Optional("discovered_spot", default=default_spot)] = selector.SelectSelector(
-                selector.SelectSelectorConfig(options=spot_options, mode=selector.SelectSelectorMode.DROPDOWN)
+        else:
+            fields[vol.Required(CONF_ENERGY_SENSOR)] = selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor", device_class="energy")
             )
 
-        fields[vol.Required(CONF_CALC_MODE, default=MODE_TOTAL)] = selector.SelectSelector(
+        fields[vol.Required(CONF_SOURCE_TYPE, default=SOURCE_DELAYED_STATS)] = selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=[
-                    {"value": MODE_TOTAL, "label": "Siirto + Sähköenergia (kokonaiskustannus)"},
-                    {"value": MODE_TRANSFER_ONLY, "label": "Pelkkä sähkönsiirto ja sähkövero"},
+                    {"value": SOURCE_DELAYED_STATS, "label": "Viiveellä päivittyvä tilasto (Oma Helen / Elenia / Fortum / Datahub)"},
+                    {"value": SOURCE_REALTIME, "label": "Reaaliaikainen (HAN / Shelly / paikallinen mittari)"},
                 ],
                 mode=selector.SelectSelectorMode.LIST,
             )
         )
 
-        return self.async_show_form(step_id="discover", data_schema=vol.Schema(fields))
+        if needs_price_sensor:
+            if len(spot_options) > 1:
+                fields[vol.Optional("discovered_spot", default=default_spot)] = selector.SelectSelector(
+                    selector.SelectSelectorConfig(options=spot_options, mode=selector.SelectSelectorMode.DROPDOWN)
+                )
+            fields[vol.Optional(CONF_SPOT_SENSOR)] = selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor")
+            )
 
-    async def async_step_manual_setup(self, user_input: dict[str, Any] | None = None):
-        """Vaihe 1B: Manuaalinen mittarivalinta."""
+        if len(transfer_options) > 1:
+            fields[vol.Optional("discovered_transfer", default=default_transfer)] = selector.SelectSelector(
+                selector.SelectSelectorConfig(options=transfer_options, mode=selector.SelectSelectorMode.DROPDOWN)
+            )
+
+        return self.async_show_form(step_id="sensors", data_schema=vol.Schema(fields))
+
+    async def async_step_solar(self, user_input: dict[str, Any] | None = None):
+        """Vaihe 3: Aurinkopaneeli / tuottotapa ja aurinkosensori."""
+        if user_input is not None:
+            solar_option = user_input[CONF_SOLAR_OPTION]
+            self._data[CONF_SOLAR_OPTION] = solar_option
+
+            solar_sensor = user_input.get("discovered_solar") or user_input.get(CONF_SOLAR_SENSOR)
+            self._data[CONF_SOLAR_SENSOR] = solar_sensor or None
+
+            if solar_option == SOLAR_OPT_NONE:
+                self._data[CONF_SOLAR_SENSOR] = None
+                self._data[CONF_SOLAR_MONTHLY_FEE] = 0.0
+                self._data[CONF_SOLAR_DEDUCT_FROM_TOTAL] = False
+                return await self.async_step_transfer()
+
+            if solar_option == SOLAR_OPT_OWN_SELL:
+                self._data[CONF_SOLAR_MODE] = SOLAR_MODE_SURPLUS
+                self._data[CONF_SOLAR_MONTHLY_FEE] = 0.0
+                self._data[CONF_SOLAR_DEDUCT_FROM_TOTAL] = True
+                self._data[CONF_SOLAR_SOURCE_TYPE] = SOURCE_REALTIME
+            elif solar_option == SOLAR_OPT_OWN_NO_SELL:
+                self._data[CONF_SOLAR_MODE] = SOLAR_MODE_SURPLUS
+                self._data[CONF_SOLAR_MONTHLY_FEE] = 0.0
+                self._data[CONF_SOLAR_DEDUCT_FROM_TOTAL] = False
+                self._data[CONF_SOLAR_SOURCE_TYPE] = SOURCE_REALTIME
+            elif solar_option == SOLAR_OPT_RENTED:
+                self._data[CONF_SOLAR_MODE] = SOLAR_MODE_RENTED
+                self._data[CONF_SOLAR_DEDUCT_FROM_TOTAL] = True
+                self._data[CONF_SOLAR_SOURCE_TYPE] = SOURCE_DELAYED_STATS
+                return await self.async_step_solar_rented()
+
+            return await self.async_step_transfer()
+
+        solar_options = [{"value": "", "label": "Valitse aurinkosensori itse tai jätä tyhjäksi"}] + [
+            {"value": s["entity_id"], "label": s["label"]}
+            for s in self._discovered["solar"]
+        ]
+        default_solar = self._discovered["solar"][0]["entity_id"] if self._discovered["solar"] else ""
+
+        fields: dict[Any, Any] = {
+            vol.Required(CONF_SOLAR_OPTION, default=SOLAR_OPT_RENTED): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[
+                        {"value": SOLAR_OPT_OWN_SELL, "label": "Oma aurinkopaneeli + myynti verkkoon"},
+                        {"value": SOLAR_OPT_OWN_NO_SELL, "label": "Oma paneeli – ei myyntiä (esim. oma inventteri / HAN / Epever tms.)"},
+                        {"value": SOLAR_OPT_RENTED, "label": "Nimikkopaneeli / vuokrapaneeli (esim. Helen Nimikkopaneeli)"},
+                        {"value": SOLAR_OPT_NONE, "label": "Ei aurinkopaneelia"},
+                    ],
+                    mode=selector.SelectSelectorMode.LIST,
+                )
+            )
+        }
+        if len(solar_options) > 1:
+            fields[vol.Optional("discovered_solar", default=default_solar)] = selector.SelectSelector(
+                selector.SelectSelectorConfig(options=solar_options, mode=selector.SelectSelectorMode.DROPDOWN)
+            )
+        fields[vol.Optional(CONF_SOLAR_SENSOR)] = selector.EntitySelector(
+            selector.EntitySelectorConfig(domain="sensor", device_class="energy")
+        )
+
+        return self.async_show_form(step_id="solar", data_schema=vol.Schema(fields))
+
+    async def async_step_solar_rented(self, user_input: dict[str, Any] | None = None):
+        """Vaihe 3B: Nimikkopaneelin / vuokrapaneelin kuukausimaksu ja hyvitysasetukset."""
         if user_input is not None:
             self._data.update(user_input)
-            if self._data.get(CONF_SOLAR_SENSOR):
-                self._data.setdefault(
-                    CONF_SOLAR_SOURCE_TYPE, self._data.get(CONF_SOURCE_TYPE, SOURCE_REALTIME)
-                )
             return await self.async_step_transfer()
 
         schema = vol.Schema(
             {
-                vol.Required(CONF_ENERGY_SENSOR): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor", device_class="energy")
-                ),
-                vol.Required(CONF_SOURCE_TYPE, default=SOURCE_REALTIME): selector.SelectSelector(
+                vol.Optional(CONF_SOLAR_MONTHLY_FEE, default=0.0): vol.Coerce(float),
+                vol.Required(CONF_SOLAR_SOURCE_TYPE, default=SOURCE_DELAYED_STATS): selector.SelectSelector(
                     selector.SelectSelectorConfig(
                         options=[
-                            {"value": SOURCE_REALTIME, "label": "Reaaliaikainen (HAN / Shelly / paikallinen mittari)"},
-                            {"value": SOURCE_DELAYED_STATS, "label": "Viiveellä päivittyvä tilasto (Oma Helen / Elenia / Fortum / Datahub)"},
+                            {"value": SOURCE_DELAYED_STATS, "label": "Viiveellä päivittyvä tilasto (esim. Oma Helen kuukausituotto)"},
+                            {"value": SOURCE_REALTIME, "label": "Reaaliaikainen (HAN-vienti / invertteri)"},
                         ],
                         mode=selector.SelectSelectorMode.LIST,
                     )
                 ),
-                vol.Optional(CONF_SOLAR_SENSOR): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor", device_class="energy")
-                ),
-                vol.Required(CONF_CALC_MODE, default=MODE_TOTAL): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=[
-                            {"value": MODE_TOTAL, "label": "Siirto + Sähköenergia (kokonaiskustannus)"},
-                            {"value": MODE_TRANSFER_ONLY, "label": "Pelkkä sähkönsiirto ja sähkövero"},
-                        ],
-                        mode=selector.SelectSelectorMode.LIST,
-                    )
-                ),
+                vol.Required(CONF_SOLAR_DEDUCT_FROM_TOTAL, default=True): bool,
+                vol.Optional(CONF_SOLAR_MARGIN, default=0.30): vol.Coerce(float),
+                vol.Optional(CONF_SOLAR_TRANSFER_FEE, default=0.0): vol.Coerce(float),
+                vol.Required(CONF_SOLAR_SPOT_VAT_INCLUDED, default=True): bool,
             }
         )
-        return self.async_show_form(step_id="manual_setup", data_schema=schema)
+        return self.async_show_form(step_id="solar_rented", data_schema=schema)
 
     async def async_step_transfer(self, user_input: dict[str, Any] | None = None):
-        """Vaihe 2: Syötä sähkönsiirtoyhtiö, siirtotuote ja maksut."""
+        """Vaihe 4: Syötä sähkönsiirtoyhtiö, siirtotuote ja maksut."""
         if user_input is not None:
             self._data.update(user_input)
-            if self._data[CONF_CALC_MODE] == MODE_TOTAL:
+            if self._data.get(CONF_CALC_MODE) == MODE_TOTAL:
                 return await self.async_step_energy()
-            if self._data.get(CONF_SOLAR_SENSOR):
-                return await self.async_step_solar()
             return self.async_create_entry(title=_build_entry_title(self._data), data=self._data)
 
         fields: dict[Any, Any] = {
@@ -361,138 +437,81 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(step_id="transfer", data_schema=vol.Schema(fields))
 
     async def async_step_energy(self, user_input: dict[str, Any] | None = None):
-        """Vaihe 3: Energiasopimuksen tiedot."""
+        """Vaihe 5: Energiasopimuksen tiedot valitun seurattavan kokonaisuuden mukaan."""
+        follow_mode = self._data.get(CONF_FOLLOW_MODE, FOLLOW_SPOT_TRANSFER)
+
         if user_input is not None:
             self._data.update(user_input)
-            if self._data.get(CONF_SOLAR_SENSOR):
-                return await self.async_step_solar()
             return self.async_create_entry(title=_build_entry_title(self._data), data=self._data)
 
-        default_contract = self._data.get(CONF_CONTRACT_TYPE, CONTRACT_SPOT)
+        fields: dict[Any, Any] = {}
         default_spot = self._data.get(CONF_SPOT_SENSOR)
 
-        energy_fields: dict[Any, Any] = {
-            vol.Required(CONF_CONTRACT_TYPE, default=default_contract): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=[
-                        {"value": CONTRACT_FIXED, "label": "Kiinteähintainen sopimus"},
-                        {"value": CONTRACT_SPOT, "label": "Pörssisähkö (Spot + marginaali)"},
-                        {"value": CONTRACT_HYBRID, "label": "Välkkysähkö (Kiinteä perushinta + kulutusvaikutus)"},
-                    ],
-                    mode=selector.SelectSelectorMode.DROPDOWN,
+        if follow_mode == FOLLOW_FIXED_TRANSFER:
+            fields[vol.Required(CONF_FIXED_PRICE, default=8.50)] = vol.Coerce(float)
+            fields[vol.Optional(CONF_MARGIN, default=0.0)] = vol.Coerce(float)
+            fields[vol.Optional(CONF_ENERGY_MONTHLY, default=0.0)] = vol.Coerce(float)
+        elif follow_mode == FOLLOW_HYBRID_TRANSFER:
+            fields[vol.Required(CONF_FIXED_PRICE, default=8.50)] = vol.Coerce(float)
+            if default_spot:
+                fields[vol.Optional(CONF_SPOT_SENSOR, default=default_spot)] = selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor")
                 )
-            ),
-            vol.Optional(CONF_FIXED_PRICE, default=8.50): vol.Coerce(float),
-        }
-
-        if default_spot:
-            energy_fields[vol.Optional(CONF_SPOT_SENSOR, default=default_spot)] = selector.EntitySelector(
-                selector.EntitySelectorConfig(domain="sensor")
-            )
+            else:
+                fields[vol.Optional(CONF_SPOT_SENSOR)] = selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor")
+                )
+            fields[vol.Optional(CONF_MARGIN, default=0.0)] = vol.Coerce(float)
+            fields[vol.Optional(CONF_ENERGY_MONTHLY, default=0.0)] = vol.Coerce(float)
         else:
-            energy_fields[vol.Optional(CONF_SPOT_SENSOR)] = selector.EntitySelector(
-                selector.EntitySelectorConfig(domain="sensor")
-            )
+            if default_spot:
+                fields[vol.Optional(CONF_SPOT_SENSOR, default=default_spot)] = selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor")
+                )
+            else:
+                fields[vol.Optional(CONF_SPOT_SENSOR)] = selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor")
+                )
+            fields[vol.Optional(CONF_MARGIN, default=0.45)] = vol.Coerce(float)
+            fields[vol.Optional(CONF_ENERGY_MONTHLY, default=0.0)] = vol.Coerce(float)
 
-        energy_fields[vol.Optional(CONF_MARGIN, default=0.45)] = vol.Coerce(float)
-        energy_fields[vol.Optional(CONF_ENERGY_MONTHLY, default=0.0)] = vol.Coerce(float)
-
-        return self.async_show_form(step_id="energy", data_schema=vol.Schema(energy_fields))
-
-    async def async_step_solar(self, user_input: dict[str, Any] | None = None):
-        """Vaihe 4: Aurinkopaneelin tuoton ja myyntihyvityksen asetukset."""
-        if user_input is not None:
-            self._data.update(user_input)
-            return self.async_create_entry(title=_build_entry_title(self._data), data=self._data)
-
-        default_mode = self._data.get(CONF_SOLAR_MODE, SOLAR_MODE_SURPLUS)
-        default_source = self._data.get(CONF_SOLAR_SOURCE_TYPE, SOURCE_REALTIME)
-
-        schema = vol.Schema(
-            {
-                vol.Required(CONF_SOLAR_MODE, default=default_mode): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=[
-                            {"value": SOLAR_MODE_SURPLUS, "label": "Oma aurinkopaneeli (ylijäämäsähkön myynti verkkoon)"},
-                            {"value": SOLAR_MODE_RENTED, "label": "Nimikkopaneeli (esim. Helen Nimikkopaneeli -hyvitys)"},
-                        ],
-                        mode=selector.SelectSelectorMode.DROPDOWN,
-                    )
-                ),
-                vol.Required(CONF_SOLAR_SOURCE_TYPE, default=default_source): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=[
-                            {"value": SOURCE_REALTIME, "label": "Reaaliaikainen (HAN-vienti / invertteri)"},
-                            {"value": SOURCE_DELAYED_STATS, "label": "Viiveellä päivittyvä tilasto (Oma Helen / Datahub)"},
-                        ],
-                        mode=selector.SelectSelectorMode.LIST,
-                    )
-                ),
-                vol.Required(CONF_SOLAR_DEDUCT_FROM_TOTAL, default=True): bool,
-                vol.Optional(CONF_SOLAR_MARGIN, default=0.30): vol.Coerce(float),
-                vol.Optional(CONF_SOLAR_TRANSFER_FEE, default=0.0): vol.Coerce(float),
-                vol.Optional(CONF_SOLAR_MONTHLY_FEE, default=0.0): vol.Coerce(float),
-                vol.Required(CONF_SOLAR_SPOT_VAT_INCLUDED, default=True): bool,
-            }
-        )
-        return self.async_show_form(step_id="solar", data_schema=schema)
+        return self.async_show_form(step_id="energy", data_schema=vol.Schema(fields))
 
 
 class SahkokulutOptionsFlowHandler(config_entries.OptionsFlow):
-    """Options flow siirtotuotteen ja hintojen muokkaamiseen."""
+    """Options flow siirtotuotteen, perusmaksujen ja hintojen muokkaamiseen."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
+        self._config_entry = config_entry
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None):
-        current = {**self.config_entry.data, **self.config_entry.options}
+        """Näytä ja tallenna asetukset virheettömästi."""
+        current: dict[str, Any] = {}
+        if self._config_entry.data:
+            current.update(self._config_entry.data)
+        if self._config_entry.options:
+            current.update(self._config_entry.options)
+
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
         fields: dict[Any, Any] = {
-            vol.Optional(
-                CONF_DSO_NAME, default=current.get(CONF_DSO_NAME, "")
-            ): str,
-            vol.Optional(
-                CONF_TARIFF_NAME, default=current.get(CONF_TARIFF_NAME, "Yleissiirto")
-            ): str,
-            vol.Required(
-                CONF_TRANSFER_DAY, default=current.get(CONF_TRANSFER_DAY, 2.26)
-            ): vol.Coerce(float),
-            vol.Optional(
-                CONF_TRANSFER_NIGHT, default=current.get(CONF_TRANSFER_NIGHT, 0.0)
-            ): vol.Coerce(float),
-            vol.Optional(
-                CONF_TRANSFER_MONTHLY, default=current.get(CONF_TRANSFER_MONTHLY, 0.0)
-            ): vol.Coerce(float),
-            vol.Optional(
-                CONF_ENERGY_MONTHLY, default=current.get(CONF_ENERGY_MONTHLY, 0.0)
-            ): vol.Coerce(float),
-            vol.Optional(
-                CONF_INCLUDE_MONTHLY_FEES, default=current.get(CONF_INCLUDE_MONTHLY_FEES, True)
-            ): bool,
-            vol.Required(
-                CONF_ELECTRICITY_TAX, default=current.get(CONF_ELECTRICITY_TAX, DEFAULT_TAX)
-            ): vol.Coerce(float),
-            vol.Optional(
-                CONF_FIXED_PRICE, default=current.get(CONF_FIXED_PRICE, 8.50)
-            ): vol.Coerce(float),
-            vol.Optional(
-                CONF_MARGIN, default=current.get(CONF_MARGIN, 0.45)
-            ): vol.Coerce(float),
-            vol.Optional(
-                CONF_SOLAR_MARGIN, default=current.get(CONF_SOLAR_MARGIN, 0.30)
-            ): vol.Coerce(float),
-            vol.Optional(
-                CONF_SOLAR_TRANSFER_FEE, default=current.get(CONF_SOLAR_TRANSFER_FEE, 0.0)
-            ): vol.Coerce(float),
-            vol.Optional(
-                CONF_SOLAR_MONTHLY_FEE,
-                default=current.get(CONF_SOLAR_MONTHLY_FEE, 0.0),
-            ): vol.Coerce(float),
+            vol.Optional(CONF_DSO_NAME, default=str(current.get(CONF_DSO_NAME) or "")): str,
+            vol.Optional(CONF_TARIFF_NAME, default=str(current.get(CONF_TARIFF_NAME) or "Yleissiirto")): str,
+            vol.Required(CONF_TRANSFER_DAY, default=float(current.get(CONF_TRANSFER_DAY) or 2.26)): vol.Coerce(float),
+            vol.Optional(CONF_TRANSFER_NIGHT, default=float(current.get(CONF_TRANSFER_NIGHT) or 0.0)): vol.Coerce(float),
+            vol.Optional(CONF_TRANSFER_MONTHLY, default=float(current.get(CONF_TRANSFER_MONTHLY) or 0.0)): vol.Coerce(float),
+            vol.Optional(CONF_ENERGY_MONTHLY, default=float(current.get(CONF_ENERGY_MONTHLY) or 0.0)): vol.Coerce(float),
+            vol.Optional(CONF_SOLAR_MONTHLY_FEE, default=float(current.get(CONF_SOLAR_MONTHLY_FEE) or 0.0)): vol.Coerce(float),
+            vol.Optional(CONF_INCLUDE_MONTHLY_FEES, default=bool(current.get(CONF_INCLUDE_MONTHLY_FEES, True))): bool,
+            vol.Required(CONF_ELECTRICITY_TAX, default=float(current.get(CONF_ELECTRICITY_TAX) or DEFAULT_TAX)): vol.Coerce(float),
+            vol.Optional(CONF_FIXED_PRICE, default=float(current.get(CONF_FIXED_PRICE) or 8.50)): vol.Coerce(float),
+            vol.Optional(CONF_MARGIN, default=float(current.get(CONF_MARGIN) or 0.0)): vol.Coerce(float),
+            vol.Optional(CONF_SOLAR_MARGIN, default=float(current.get(CONF_SOLAR_MARGIN) or 0.30)): vol.Coerce(float),
+            vol.Optional(CONF_SOLAR_TRANSFER_FEE, default=float(current.get(CONF_SOLAR_TRANSFER_FEE) or 0.0)): vol.Coerce(float),
             vol.Optional(
                 CONF_SOLAR_DEDUCT_FROM_TOTAL,
-                default=current.get(CONF_SOLAR_DEDUCT_FROM_TOTAL, True),
+                default=bool(current.get(CONF_SOLAR_DEDUCT_FROM_TOTAL, True)),
             ): bool,
         }
         return self.async_show_form(step_id="init", data_schema=vol.Schema(fields))

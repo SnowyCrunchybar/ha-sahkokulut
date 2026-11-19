@@ -116,7 +116,7 @@ def get_total_price_eur_per_kwh(
 
 
 def get_daily_fixed_fee_eur(dt_obj: datetime, config: dict[str, Any]) -> float:
-    """Laske päiväkohtainen perusmaksu (€/päivä) kuukauden päivien mukaan (sis. siirto, energia ja paneelimaksu)."""
+    """Laske päiväkohtainen perusmaksu (€/päivä) kuukauden päivien mukaan."""
     local_dt = dt_util.as_local(dt_obj)
     days_in_month = calendar.monthrange(local_dt.year, local_dt.month)[1]
     transfer_monthly = float(config.get(CONF_TRANSFER_MONTHLY, 0.0))
@@ -141,7 +141,7 @@ def get_solar_credit_eur_per_kwh(
     spot = spot_price_cents if spot_price_cents is not None else 0.0
 
     if config.get(CONF_SOLAR_SPOT_VAT_INCLUDED, True):
-        spot = spot / 1.255  # Muunna ALV 0 % myynti-/hyvityshinnaksi
+        spot = spot / 1.255
 
     margin = float(config.get(CONF_SOLAR_MARGIN, 0.30))
     grid_fee = (

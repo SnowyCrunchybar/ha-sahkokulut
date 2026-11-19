@@ -25,9 +25,12 @@ from .const import (
     CONF_ENERGY_SENSOR,
     CONF_INCLUDE_MONTHLY_FEES,
     CONF_SOLAR_DEDUCT_FROM_TOTAL,
+    CONF_SOLAR_OPTION,
     CONF_SOLAR_SENSOR,
     CONF_SPOT_SENSOR,
     DOMAIN,
+    SOLAR_OPT_OWN_SELL,
+    SOLAR_OPT_RENTED,
 )
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
@@ -40,6 +43,15 @@ SERVICE_SCHEMA = vol.Schema(
         vol.Optional("consumption_effect_cents"): vol.Coerce(float),
     }
 )
+
+
+def _should_deduct_solar(config: dict) -> bool:
+    solar_option = config.get(CONF_SOLAR_OPTION)
+    if solar_option in (SOLAR_OPT_OWN_SELL, SOLAR_OPT_RENTED):
+        return True
+    if solar_option == "own_no_sell":
+        return False
+    return bool(config.get(CONF_SOLAR_DEDUCT_FROM_TOTAL, True))
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -57,7 +69,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         energy_entity = config[CONF_ENERGY_SENSOR]
         solar_entity = config.get(CONF_SOLAR_SENSOR)
         spot_entity = config.get(CONF_SPOT_SENSOR)
-        deduct_solar = bool(solar_entity and config.get(CONF_SOLAR_DEDUCT_FROM_TOTAL, True))
+        deduct_solar = bool(solar_entity and _should_deduct_solar(config))
         include_fees = bool(config.get(CONF_INCLUDE_MONTHLY_FEES, True))
         cost_entity = f"sensor.{DOMAIN}_kertynyt_kustannus"
 

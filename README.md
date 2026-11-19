@@ -6,16 +6,16 @@
 
 HACS-yhteensopiva Home Assistant -integraatio sähkön kokonaiskustannusten (sähkönsiirto + sähkövero + sähköenergia + kuukausimaksut - aurinkotuoton myyntihyvitys) laskentaan ja seurantaan Suomessa.
 
-Koska jokaisella verkkoyhtiöllä on omat tuotenimensä (esim. *Yleissiirto*, *Yleissiirto 5*, *Kausisiirto* tai *Pientehosiirto*), perusmaksunsa ja aikavyöhykkeensä, **verkkoyhtiön nimi, siirtotuotteen nimi ja hinnat syötetään suoraan integraation asetuksissa** (ilman riippuvuutta valmiista yhtiötaulukosta).
+## Käyttöönotto ja ominaisuudet
 
-## Ominaisuudet
-
-- **Oma verkkoyhtiö ja siirtotuote:** Syötät vapaasti siirtoyhtiön nimen (esim. *Alva Sähköverkko*) ja siirtotuotteen nimen (esim. *Yleissiirto*, *Yleissiirto 5* tai *Kausisiirto*) sekä omat energiamaksut (`snt/kWh`) ja kuukausiperusmaksun (`€/kk`).
-- **Joustavat siirtotariffit:** Tukee yleissiirtoa, aikasiirtoa (päivä/yö) sekä kausisiirtoa (talviarkipäivä / muu aika, mukaan lukien lauantai-asetus).
-- **Automaattinen anturitunnistus:** Etsii asennuksessa olemassa olevat kulutus-, aurinkotuotto-, siirto- ja pörssisähkösensorit (esim. *Oma Helen* ml. Nimikkopaneeli, *Elenia*, *Caruna*, *Fortum*, *Fingrid Datahub*, *Nord Pool*, *Entso-E*, *Sähkön hinta nyt*).
-- **Päivittäinen perusmaksujen jyvitys:** Lisää kuukausittaiset perusmaksut (`€/kk / kuukauden päivät`) automaattisesti vuorokauden vaihtuessa kertyneisiin kustannuksiin.
-- **Aurinkopaneelin tuotto ja myyntihyvitys:** Vähentää verkkoon myydyn ylijäämäsähkön tai Helenin Nimikkopaneelin tuoton (ALV 0 % spot-hinta - välityspalkkio - tuotannon siirtomaksu) kertyneistä kuluista ja tuottaa erillisen `sensor.sahkokulut_myyntihyvitys` -sensorin.
-- **Välkkysähkön jälkilaskenta:** Palvelukutsu `sahkokulut.recalculate_period` päivittää valitun aikavälin tilastot toteutuneella kulutusvaikutuksella (`snt/kWh`).
+1. **Ensimmäinen sivu – seurattava kokonaisuus ja lisävalinnat:**
+   - **Pörssisähkö + siirto**
+   - **Kiinteähintainen sopimus + siirto**
+   - **Hybridisopimus (Välkkysähkö) + siirto**
+   - **Pelkkä sähkönsiirto ja sähkövero**
+   - **Avaa lisävalinnat (aurinkopaneelit)** – kun valittuna, avaa aurinkopaneeli-/tuottovaiheen (*Vaihe 3*), jossa voit valita paneelin tyypin (oma aurinkopaneeli + myynti, oma paneeli ilman myyntiä / esim. invertteri, HAN tai Epever, tai nimikkopaneeli/vuokrapaneeli kuten Helen Nimikkopaneeli) sekä mahdollisen kuukausimaksun (`€/kk`).
+2. **Oma verkkoyhtiö ja siirtotuote:** Syötät vapaasti siirtoyhtiön nimen (esim. *Alva Sähköverkko*), siirtotuotteen nimen (esim. *Yleissiirto*, *Yleissiirto 5*, *Kausisiirto*) ja hinnat (`snt/kWh`, `€/kk`).
+3. **Välkkysähkön jälkilaskenta:** Palvelukutsu `sahkokulut.recalculate_period` päivittää valitun aikavälin tilastot toteutuneella kulutusvaikutuksella (`snt/kWh`).
 
 ## Asennus (HACS)
 
