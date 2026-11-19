@@ -1,4 +1,4 @@
-"""Config flow for Sähkökulut integration with full provider auto-discovery."""
+"""Config flow for Sähkökulut integration with full provider & solar auto-discovery."""
 from __future__ import annotations
 
 from typing import Any
@@ -22,6 +22,13 @@ from .const import (
     CONF_FIXED_PRICE,
     CONF_MARGIN,
     CONF_SATURDAY_WINTER,
+    CONF_SOLAR_DEDUCT_FROM_TOTAL,
+    CONF_SOLAR_MARGIN,
+    CONF_SOLAR_MODE,
+    CONF_SOLAR_SENSOR,
+    CONF_SOLAR_SOURCE_TYPE,
+    CONF_SOLAR_SPOT_VAT_INCLUDED,
+    CONF_SOLAR_TRANSFER_FEE,
     CONF_SOURCE_TYPE,
     CONF_SPOT_SENSOR,
     CONF_TARIFF_TYPE,
@@ -38,6 +45,8 @@ from .const import (
     DOMAIN,
     MODE_TOTAL,
     MODE_TRANSFER_ONLY,
+    SOLAR_MODE_RENTED,
+    SOLAR_MODE_SURPLUS,
     SOURCE_DELAYED_STATS,
     SOURCE_REALTIME,
     TARIFF_GENERAL,
@@ -58,12 +67,14 @@ KNOWN_PROVIDERS = {
 
 KNOWN_SPOT_KEYWORDS = ("nordpool", "entsoe", "sahkon_hinta_nyt", "spot", "porssi")
 TRANSFER_KEYWORDS = ("siirto", "transfer", "distribution", "verkko")
+SOLAR_KEYWORDS = ("solar", "aurinko", "tuotto", "export", "myynti", "return", "nimikkopaneeli")
 
 
 def discover_electricity_entities(hass: HomeAssistant) -> dict[str, Any]:
-    """Skannaa asennetut kulutus-, siirto- ja pörssisähkösensorit."""
+    """Skannaa asennetut kulutus-, siirto-, aurinko- ja pörssisähkösensorit."""
     ent_reg = er.async_get(hass)
     discovered_energy: list[dict[str, Any]] = []
+    discovered_solar: list[dict[str, Any]] = []
     discovered_transfer: list[dict[str, str]] = []
     discovered_spot: list[dict[str, str]] = []
     detected_dso_hint: str | None = None
@@ -93,19 +104,24 @@ def discover_electricity_entities(hass: HomeAssistant) -> dict[str, Any]:
         if matched_provider and matched_provider["dso"] and not detected_dso_hint:
             detected_dso_hint = matched_provider["dso"]
 
-        # 1. Kulutusmittarit (kWh)
+        # 1. Kulutus- ja aurinkotuottomittarit (kWh)
         if device_class == SensorDeviceClass.ENERGY or unit == "kwh":
             provider_name = matched_provider["name"] if matched_provider else None
             is_delayed = matched_provider["delayed"] if matched_provider else False
             prefix = f"[{provider_name}] " if provider_name else ""
-            discovered_energy.append(
-                {
-                    "entity_id": entry.entity_id,
-                    "label": f"{prefix}{friendly_name} ({entry.entity_id})",
-                    "source_type": SOURCE_DELAYED_STATS if is_delayed else SOURCE_REALTIME,
-                    "dso": matched_provider["dso"] if matched_provider else None,
-                }
-            )
+            is_solar = any(k in eid_lower or k in friendly_name.lower() for k in SOLAR_KEYWORDS)
+
+            item = {
+                "entity_id": entry.entity_id,
+                "label": f"{prefix}{friendly_name} ({entry.entity_id})",
+                "source_type": SOURCE_DELAYED_STATS if is_delayed else SOURCE_REALTIME,
+                "dso": matched_provider["dso"] if matched_provider else None,
+                "is_rented_solar": "rented_solar" in eid_lower or "nimikkopaneeli" in friendly_name.lower(),
+            }
+            if is_solar:
+                discovered_solar.append(item)
+            else:
+                discovered_energy.append(item)
 
         # 2. Hintasensorit (snt/kWh, c/kWh, €/kWh)
         is_price_unit = any(u in unit for u in ("snt/kwh", "c/kwh", "eur/kwh", "€/kwh"))
@@ -128,6 +144,7 @@ def discover_electricity_entities(hass: HomeAssistant) -> dict[str, Any]:
 
     return {
         "energy": discovered_energy,
+        "solar": discovered_solar,
         "transfer": discovered_transfer,
         "spot": discovered_spot,
         "detected_dso": detected_dso_hint,
@@ -157,7 +174,12 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         has_known_energy = any(
             e["source_type"] == SOURCE_DELAYED_STATS for e in self._discovered["energy"]
         )
-        if has_known_energy or self._discovered["transfer"] or self._discovered["spot"]:
+        if (
+            has_known_energy
+            or self._discovered["solar"]
+            or self._discovered["transfer"]
+            or self._discovered["spot"]
+        ):
             return await self.async_step_discover()
 
         return await self.async_step_manual_setup()
@@ -167,6 +189,7 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             if user_input.get("use_discovered"):
                 selected_energy = user_input.get("discovered_energy")
+                selected_solar = user_input.get("discovered_solar")
                 selected_transfer = user_input.get("discovered_transfer")
                 selected_spot = user_input.get("discovered_spot")
 
@@ -181,6 +204,19 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     )
                     if match and match.get("dso"):
                         self._discovered["detected_dso"] = match["dso"]
+
+                if selected_solar:
+                    self._data[CONF_SOLAR_SENSOR] = selected_solar
+                    smatch = next(
+                        (s for s in self._discovered["solar"] if s["entity_id"] == selected_solar),
+                        None,
+                    )
+                    self._data[CONF_SOLAR_SOURCE_TYPE] = (
+                        smatch["source_type"] if smatch else SOURCE_REALTIME
+                    )
+                    self._data[CONF_SOLAR_MODE] = (
+                        SOLAR_MODE_RENTED if (smatch and smatch.get("is_rented_solar")) else SOLAR_MODE_SURPLUS
+                    )
 
                 if selected_transfer:
                     self._data[CONF_TRANSFER_SENSOR] = selected_transfer
@@ -199,6 +235,10 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             {"value": e["entity_id"], "label": e["label"]}
             for e in self._discovered["energy"]
         ]
+        solar_options = [{"value": "", "label": "Ei aurinkopaneelia / ei käytössä"}] + [
+            {"value": s["entity_id"], "label": s["label"]}
+            for s in self._discovered["solar"]
+        ]
         transfer_options = [{"value": "", "label": "Ei erillistä siirtosensoria (käytä yhtiön hinnastoa)"}] + [
             {"value": t["entity_id"], "label": t["label"]}
             for t in self._discovered["transfer"]
@@ -216,6 +256,7 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             (e["entity_id"] for e in self._discovered["energy"] if e["source_type"] == SOURCE_DELAYED_STATS),
             energy_options[0]["value"] if energy_options else "",
         )
+        default_solar = self._discovered["solar"][0]["entity_id"] if self._discovered["solar"] else ""
         default_transfer = self._discovered["transfer"][0]["entity_id"] if self._discovered["transfer"] else ""
         default_spot = self._discovered["spot"][0]["entity_id"] if self._discovered["spot"] else ""
 
@@ -231,6 +272,10 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if energy_options:
             fields[vol.Optional("discovered_energy", default=default_energy)] = selector.SelectSelector(
                 selector.SelectSelectorConfig(options=energy_options, mode=selector.SelectSelectorMode.DROPDOWN)
+            )
+        if len(solar_options) > 1:
+            fields[vol.Optional("discovered_solar", default=default_solar)] = selector.SelectSelector(
+                selector.SelectSelectorConfig(options=solar_options, mode=selector.SelectSelectorMode.DROPDOWN)
             )
         if len(transfer_options) > 1:
             fields[vol.Optional("discovered_transfer", default=default_transfer)] = selector.SelectSelector(
@@ -260,6 +305,8 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Vaihe 1B: Manuaalinen valinta."""
         if user_input is not None:
             self._data.update(user_input)
+            if self._data.get(CONF_SOLAR_SENSOR):
+                self._data.setdefault(CONF_SOLAR_SOURCE_TYPE, self._data.get(CONF_SOURCE_TYPE, SOURCE_REALTIME))
             return await self.async_step_transfer()
 
         dso_options = [{"value": "manual", "label": "Muu verkkoyhtiö (syötän hinnat käsin)"}] + [
@@ -280,6 +327,9 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         ],
                         mode=selector.SelectSelectorMode.LIST,
                     )
+                ),
+                vol.Optional(CONF_SOLAR_SENSOR): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor", device_class="energy")
                 ),
                 vol.Required(CONF_DSO_PRODUCT, default="manual"): selector.SelectSelector(
                     selector.SelectSelectorConfig(options=dso_options, mode=selector.SelectSelectorMode.DROPDOWN)
@@ -303,6 +353,8 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             if self._data[CONF_CALC_MODE] == MODE_TOTAL:
                 return await self.async_step_energy()
+            if self._data.get(CONF_SOLAR_SENSOR):
+                return await self.async_step_solar()
             return self.async_create_entry(title="Sähkökulut (Siirto)", data=self._data)
 
         dso_key = self._data.get(CONF_DSO_PRODUCT, "manual")
@@ -348,6 +400,8 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Vaihe 3: Energiasopimuksen tiedot."""
         if user_input is not None:
             self._data.update(user_input)
+            if self._data.get(CONF_SOLAR_SENSOR):
+                return await self.async_step_solar()
             return self.async_create_entry(title="Sähkökulut", data=self._data)
 
         default_contract = self._data.get(CONF_CONTRACT_TYPE, CONTRACT_SPOT)
@@ -381,6 +435,43 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(step_id="energy", data_schema=vol.Schema(energy_fields))
 
+    async def async_step_solar(self, user_input: dict[str, Any] | None = None):
+        """Vaihe 4: Aurinkopaneelin tuoton ja myyntihyvityksen asetukset."""
+        if user_input is not None:
+            self._data.update(user_input)
+            return self.async_create_entry(title="Sähkökulut", data=self._data)
+
+        default_mode = self._data.get(CONF_SOLAR_MODE, SOLAR_MODE_SURPLUS)
+        default_source = self._data.get(CONF_SOLAR_SOURCE_TYPE, SOURCE_REALTIME)
+
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_SOLAR_MODE, default=default_mode): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[
+                            {"value": SOLAR_MODE_SURPLUS, "label": "Oma aurinkopaneeli (ylijäämäsähkön myynti verkkoon)"},
+                            {"value": SOLAR_MODE_RENTED, "label": "Nimikkopaneeli (esim. Helen Nimikkopaneeli -hyvitys)"},
+                        ],
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Required(CONF_SOLAR_SOURCE_TYPE, default=default_source): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[
+                            {"value": SOURCE_REALTIME, "label": "Reaaliaikainen (HAN-vienti / invertteri)"},
+                            {"value": SOURCE_DELAYED_STATS, "label": "Viiveellä päivittyvä tilasto (Oma Helen / Datahub)"},
+                        ],
+                        mode=selector.SelectSelectorMode.LIST,
+                    )
+                ),
+                vol.Required(CONF_SOLAR_DEDUCT_FROM_TOTAL, default=True): bool,
+                vol.Optional(CONF_SOLAR_MARGIN, default=0.30): vol.Coerce(float),
+                vol.Optional(CONF_SOLAR_TRANSFER_FEE, default=0.07): vol.Coerce(float),
+                vol.Required(CONF_SOLAR_SPOT_VAT_INCLUDED, default=True): bool,
+            }
+        )
+        return self.async_show_form(step_id="solar", data_schema=schema)
+
 
 class SahkokulutOptionsFlowHandler(config_entries.OptionsFlow):
     """Options flow hintojen muokkaamiseen."""
@@ -409,6 +500,16 @@ class SahkokulutOptionsFlowHandler(config_entries.OptionsFlow):
             vol.Optional(
                 CONF_MARGIN, default=current.get(CONF_MARGIN, 0.45)
             ): vol.Coerce(float),
+            vol.Optional(
+                CONF_SOLAR_MARGIN, default=current.get(CONF_SOLAR_MARGIN, 0.30)
+            ): vol.Coerce(float),
+            vol.Optional(
+                CONF_SOLAR_TRANSFER_FEE, default=current.get(CONF_SOLAR_TRANSFER_FEE, 0.07)
+            ): vol.Coerce(float),
+            vol.Optional(
+                CONF_SOLAR_DEDUCT_FROM_TOTAL,
+                default=current.get(CONF_SOLAR_DEDUCT_FROM_TOTAL, True),
+            ): bool,
             vol.Optional(
                 CONF_AUTO_UPDATE_TARIFF, default=current.get(CONF_AUTO_UPDATE_TARIFF, True)
             ): bool,

@@ -40,6 +40,17 @@ CONF_SPOT_SENSOR = "spot_sensor"          # esim. sensor.nordpool_kwh_fi_eur_3_1
 CONF_MARGIN = "margin"                    # snt/kWh (marginaali)
 CONF_ENERGY_MONTHLY = "energy_monthly"    # €/kk
 
+# Aurinkopaneelin tuotto ja myyntihyvitys
+CONF_SOLAR_SENSOR = "solar_sensor"                  # Myynti- tai tuotantosensori (kWh)
+CONF_SOLAR_SOURCE_TYPE = "solar_source_type"        # realtime tai delayed_stats
+CONF_SOLAR_MODE = "solar_mode"                      # surplus_spot tai rented_credit
+SOLAR_MODE_SURPLUS = "surplus_spot"
+SOLAR_MODE_RENTED = "rented_credit"
+CONF_SOLAR_MARGIN = "solar_margin"                  # Myynnin välityspalkkio (snt/kWh)
+CONF_SOLAR_TRANSFER_FEE = "solar_transfer_fee"      # Tuotannon siirtomaksu (snt/kWh)
+CONF_SOLAR_SPOT_VAT_INCLUDED = "solar_spot_vat"     # Poistetaanko 25,5 % ALV spot-hinnasta myyntiin
+CONF_SOLAR_DEDUCT_FROM_TOTAL = "solar_deduct_total" # Vähennetäänkö hyvitys kertyneestä kustannuksesta
+
 # Oletusarvot (Suomi, sis. ALV 25,5 %)
 DEFAULT_TAX = 2.827515
 DEFAULT_DAY_START = 7

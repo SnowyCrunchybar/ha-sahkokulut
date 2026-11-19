@@ -3,10 +3,11 @@
     "step": {
       "discover": {
         "title": "Existing electricity integrations detected",
-        "description": "Compatible energy, transfer, or spot price sensors were found (e.g. Oma Helen, Elenia, Caruna, Fortum, or Nord Pool). Would you like to use them?",
+        "description": "Compatible energy, solar production, transfer, or spot price sensors were found. Would you like to use them?",
         "data": {
           "use_discovered": "Use detected integrations automatically",
           "discovered_energy": "Detected energy meter (kWh)",
+          "discovered_solar": "Detected solar production / export sensor (optional)",
           "discovered_transfer": "Detected transfer price sensor (optional)",
           "discovered_spot": "Detected spot/energy price sensor",
           "dso_product": "Distribution System Operator (DSO) & product",
@@ -15,10 +16,11 @@
       },
       "manual_setup": {
         "title": "Sähkökulut – Basic setup",
-        "description": "Select your energy meter, update source, and DSO.",
+        "description": "Select your energy meter, optional solar sensor, and DSO.",
         "data": {
           "energy_sensor": "Energy meter (kWh)",
           "source_type": "Meter update type",
+          "solar_sensor": "Solar production / export sensor (kWh, optional)",
           "dso_product": "Distribution System Operator (DSO) & product",
           "calc_mode": "Calculation mode"
         }
@@ -48,20 +50,35 @@
           "margin": "Margin / commission (c/kWh)",
           "energy_monthly": "Energy monthly fee (€/month)"
         }
+      },
+      "solar": {
+        "title": "Solar production and export credit",
+        "description": "Configure how solar generation or grid export reduces your electricity costs.",
+        "data": {
+          "solar_mode": "Solar calculation mode",
+          "solar_source_type": "Solar sensor update type",
+          "solar_deduct_total": "Deduct solar credit directly from total accumulated cost",
+          "solar_margin": "Solar export broker margin (c/kWh)",
+          "solar_transfer_fee": "Grid production transfer fee (c/kWh)",
+          "solar_spot_vat": "Spot sensor includes 25.5% VAT (strip VAT for export credit)"
+        }
       }
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Update electricity and transfer prices",
-        "description": "Edit pricing values (c/kWh, incl. VAT).",
+        "title": "Update electricity, transfer, and solar prices",
+        "description": "Edit pricing values (c/kWh).",
         "data": {
           "transfer_day": "Transfer price – general / day / winter weekday (c/kWh)",
           "transfer_night": "Transfer price – night / other time (c/kWh)",
           "electricity_tax": "Electricity tax + security of supply fee (c/kWh)",
           "fixed_price": "Fixed price / Hybrid base price (c/kWh)",
-          "margin": "Margin (c/kWh)",
+          "margin": "Import margin (c/kWh)",
+          "solar_margin": "Solar export margin (c/kWh)",
+          "solar_transfer_fee": "Grid production transfer fee (c/kWh)",
+          "solar_deduct_total": "Deduct solar credit from total cost",
           "auto_update_tariff": "Auto-update DSO transfer prices"
         }
       }

@@ -1,6 +1,6 @@
 recalculate_period:
   name: Laske jakso uudelleen
-  description: Päivittää valitun aikavälin sähkökustannustilastot uudelleen (esim. välkkysähkön toteutuneella kulutusvaikutuksella).
+  description: Päivittää valitun aikavälin sähkökustannustilastot uudelleen (esim. välkkysähkön toteutuneella kulutusvaikutuksella ja aurinkohyvityksellä).
   fields:
     start_time:
       name: Alkuaika

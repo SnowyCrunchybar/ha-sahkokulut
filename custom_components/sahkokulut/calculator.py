@@ -1,4 +1,4 @@
-"""Tariff and price calculation helpers for Sähkökulut."""
+"""Tariff, energy, and solar credit calculation helpers for Sähkökulut."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -15,6 +15,10 @@ from .const import (
     CONF_FIXED_PRICE,
     CONF_MARGIN,
     CONF_SATURDAY_WINTER,
+    CONF_SOLAR_MARGIN,
+    CONF_SOLAR_MODE,
+    CONF_SOLAR_SPOT_VAT_INCLUDED,
+    CONF_SOLAR_TRANSFER_FEE,
     CONF_TARIFF_TYPE,
     CONF_TRANSFER_DAY,
     CONF_TRANSFER_NIGHT,
@@ -25,6 +29,7 @@ from .const import (
     DEFAULT_DAY_START,
     DEFAULT_TAX,
     MODE_TRANSFER_ONLY,
+    SOLAR_MODE_RENTED,
     TARIFF_GENERAL,
     TARIFF_SEASONAL,
     TARIFF_TIME,
@@ -81,7 +86,7 @@ def get_total_price_eur_per_kwh(
     custom_consumption_effect_cents: float | None = None,
     external_transfer_cents: float | None = None,
 ) -> float:
-    """Laske kokonaishinta yksikössä €/kWh."""
+    """Laske ostosähkön kokonaishinta yksikössä €/kWh."""
     total_cents = get_transfer_price_cents(dt_obj, config, external_transfer_cents)
 
     if config.get(CONF_CALC_MODE) == MODE_TRANSFER_ONLY:
@@ -104,3 +109,25 @@ def get_total_price_eur_per_kwh(
             total_cents += fixed + margin + (spot - fixed)
 
     return round(total_cents / 100.0, 6)
+
+
+def get_solar_credit_eur_per_kwh(
+    config: dict[str, Any],
+    spot_price_cents: float | None = None,
+) -> float:
+    """Laske aurinkopaneelin tuoton myynti- tai hyvityshinta yksikössä €/kWh."""
+    solar_mode = config.get(CONF_SOLAR_MODE)
+    spot = spot_price_cents if spot_price_cents is not None else 0.0
+
+    if config.get(CONF_SOLAR_SPOT_VAT_INCLUDED, True):
+        spot = spot / 1.255  # Muunna ALV 0 % myynti-/hyvityshinnaksi
+
+    margin = float(config.get(CONF_SOLAR_MARGIN, 0.30))
+    grid_fee = (
+        0.0
+        if solar_mode == SOLAR_MODE_RENTED
+        else float(config.get(CONF_SOLAR_TRANSFER_FEE, 0.0))
+    )
+
+    net_cents = max(0.0, spot - margin - grid_fee)
+    return round(net_cents / 100.0, 6)
