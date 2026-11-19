@@ -316,18 +316,15 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self._data[CONF_SOLAR_DEDUCT_FROM_TOTAL] = False
                 return await self.async_step_transfer_type()
 
+            solar_sensor = user_input.get("discovered_solar") or user_input.get(CONF_SOLAR_SENSOR)
+            self._data[CONF_SOLAR_SENSOR] = solar_sensor or None
+
             if solar_option == SOLAR_OPT_RENTED:
                 self._data[CONF_SOLAR_MODE] = SOLAR_MODE_RENTED
                 self._data[CONF_SOLAR_SOURCE_TYPE] = SOURCE_DELAYED_STATS
                 self._data[CONF_SOLAR_DEDUCT_FROM_TOTAL] = False
-                default_rented_sensor = (
-                    self._discovered["solar"][0]["entity_id"] if self._discovered["solar"] else None
-                )
-                self._data[CONF_SOLAR_SENSOR] = default_rented_sensor
                 return await self.async_step_solar_rented()
 
-            solar_sensor = user_input.get("discovered_solar") or user_input.get(CONF_SOLAR_SENSOR)
-            self._data[CONF_SOLAR_SENSOR] = solar_sensor or None
             self._data[CONF_SOLAR_MONTHLY_FEE] = 0.0
             self._data[CONF_SOLAR_SOURCE_TYPE] = SOURCE_REALTIME
 

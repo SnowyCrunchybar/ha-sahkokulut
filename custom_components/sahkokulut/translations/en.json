@@ -62,11 +62,7 @@
       },
       "energy": {
         "title": "Contract prices",
-
         "description": "Enter contract prices and the electricity contract monthly fee (€/month), if not already included in existing entities or unavailable as an entity.",
-
-        "description": "Enter prices and monthly fees for your selected contract.",
-
         "data": {
           "fixed_price": "Fixed price / Base price (c/kWh)",
           "spot_sensor": "Spot sensor (c/kWh or €/kWh)",

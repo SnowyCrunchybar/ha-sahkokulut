@@ -1,32 +1,53 @@
 # Sähkökulut
 
-> **Work in Progress (WIP):** Tämä integraatio on aktiivisessa kehitysvaiheessa. Laskentaa ja ominaisuuksia parannetaan jatkuvasti – testaa ja raportoi mahdolliset havainnot [Issues-sivulla](https://github.com/SnowyCrunchybar/ha-sahkokulut/issues).
+> **Kehitysvaiheessa:** Integraatiota kehitetään jatkuvasti – testaa ja raportoi havainnot [Issues-sivulla](https://github.com/SnowyCrunchybar/ha-sahkokulut/issues).
+
+[![Lisää HACS:iin](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=SnowyCrunchybar&repository=ha-sahkokulut&category=integration)
+
+HACS-yhteensopiva Home Assistant -integraatio sähkön kokonaiskustannusten (sähkönsiirto, sähkövero, sähköenergia, kuukausimaksut ja aurinkotuoton hyvitys) laskentaan ja seurantaan Suomessa.
+
+## Ominaisuudet
+
+- Pörssisähkö-, kiinteähintainen, hybridisopimus- ja pelkän siirron laskenta
+- Sähkönsiirtoyhtiön ja siirtotariffin vapaa määritys
+- Kertyvä kustannus reaaliaikaisista mittareista ja viiveellä päivittyvistä tilastoista
+- Erilliset sähkösopimuksen ja sähkönsiirron perusmaksusensorit
+- Vuokra- tai nimikkopaneelien arvioitu energiamaksuhyvitys
+- Asetusten, hintojen ja antureiden muokkaus integraation asetuksista
+- Välkkysähkön jälkilaskenta `sahkokulut.recalculate_period` -palvelulla
+
+## Asennus HACS:in kautta
+
+1. Klikkaa yllä olevaa **Lisää HACS:iin** -painiketta.
+2. Jos asennat käsin, avaa Home Assistantissa **HACS → Integraatiot**.
+3. Valitse **Mukautetut tietovarastot** ja lisää `https://github.com/SnowyCrunchybar/ha-sahkokulut`.
+4. Valitse kategoriaksi **Integration**, asenna Sähkökulut ja käynnistä Home Assistant uudelleen.
+5. Lisää integraatio: **Asetukset → Laitteet ja palvelut → Lisää integraatio → Sähkökulut**.
+
+---
+
+# Electricity Costs
+
+> **Work in progress:** This integration is under active development. Test it and report findings on the [Issues page](https://github.com/SnowyCrunchybar/ha-sahkokulut/issues).
 
 [![Add to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=SnowyCrunchybar&repository=ha-sahkokulut&category=integration)
 
-HACS-yhteensopiva Home Assistant -integraatio sähkön kokonaiskustannusten (sähkönsiirto + sähkövero + sähköenergia + kuukausimaksut - aurinkotuoton myyntihyvitys) laskentaan ja seurantaan Suomessa.
+A HACS-compatible Home Assistant integration for calculating and tracking total electricity costs in Finland: grid charges, electricity tax, energy costs, monthly fees and solar credit.
 
-## Käyttöönotto ja ominaisuudet
+## Features
 
-1. **Ensimmäinen sivu – seurattava kokonaisuus ja lisävalinnat:**
-   - **Pörssisähkö + siirto**
-   - **Kiinteähintainen sopimus + siirto**
-   - **Hybridisopimus (Välkkysähkö) + siirto**
-   - **Pelkkä sähkönsiirto ja sähkövero**
-   - **Avaa lisävalinnat (aurinkopaneelit)** – avaa aurinkopaneeli-/tuottovaiheen (*Vaihe 3*). Vuokrapaneeli-/nimikkopaneelivaihtoehdossa kysytään vain kuukausimaksu (`€/kk`) ja kerrotaan, että sen tuottama sähkö hyvitetään automaattisesti sähkömyyjän päässä.
-2. **Sähkönsiirtoyhtiö ja siirtotariffit:** Syötät vapaasti siirtoyhtiön nimen (esim. *Alva Sähköverkko*), siirtotuotteen nimen (esim. *Yleissiirto*, *Yleissiirto 5*, *Kausisiirto*) ja valitset tariffityypin (**Yleis**, **Aika**, **Kausi** tai **Muu**), jolloin näytetään vain kyseiseen tariffiin liittyvät hinta- ja aikakentät.
-3. **Kertyvä kustannus ja perusmaksusensorit:**
-   - Laskee kertyneen kustannuksen (`Kertynyt kustannus`) sekä reaaliaikaisista mittareista että viiveellä päivittyvistä tilastoista (`delayed_stats`) ja palauttaa tilan käynnistyksen yli (`RestoreEntity`).
-   - Luo erilliset perusmaksusensorit: **Sähkösopimuksen perusmaksu** (`€/kk`, kun energiasopimus on käytössä) ja **Sähkönsiirron perusmaksu** (`€/kk`).
-4. **Asetusten ja antureiden muokkaus:** Voit milloin tahansa muokata integraation asetuksia, hintoja sekä kulutus-, pörssisähkö-, siirto- ja aurinkoantureita (*Asetukset → Laitteet ja palvelut → Sähkökulut → Määritä*).
-5. **Välkkysähkön jälkilaskenta:** Palvelukutsu `sahkokulut.recalculate_period` päivittää valitun aikavälin tilastot toteutuneella kulutusvaikutuksella (`snt/kWh`).
+- Spot-price, fixed-price, hybrid-contract and grid-only calculations
+- Configurable electricity distributor and grid tariff
+- Cumulative cost from real-time sensors and delayed recorder statistics
+- Separate energy-contract and grid monthly-fee sensors
+- Estimated energy-credit sensor for rented or named solar panels
+- Editable settings, prices and consumption, spot-price, grid and solar sensors
+- Hybrid-contract recalculation through the `sahkokulut.recalculate_period` service
 
-## Asennus (HACS)
+## Installation via HACS
 
-Klikkaa yllä olevaa **Add to HACS** -painiketta tai tee asennus käsin:
-
-1. Avaa Home Assistantissa **HACS → Integraatiot**.
-2. Valitse oikeasta yläkulmasta **Mukautetut tietovarastot (Custom repositories)**.
-3. Lisää URL `https://github.com/SnowyCrunchybar/ha-sahkokulut` ja valitse kategoriaksi **Integration**.
-4. Asenna **Sähkökulut** ja käynnistä Home Assistant uudelleen.
-5. Lisää integraatio: **Asetukset → Laitteet ja palvelut → Lisää integraatio → Sähkökulut**.
+1. Click the **Add to HACS** button above.
+2. For a manual setup, open **HACS → Integrations** in Home Assistant.
+3. Open **Custom repositories**, add `https://github.com/SnowyCrunchybar/ha-sahkokulut`, and select **Integration**.
+4. Install **Sähkökulut** and restart Home Assistant.
+5. Add the integration under **Settings → Devices & services → Add integration → Sähkökulut**.

@@ -62,9 +62,7 @@
       },
       "energy": {
         "title": "Sopimusten hinnat",
-
         "description": "Syötä sopimuksen hinnat sekä sähkösopimuksen perusmaksu (€/kk), jos sitä ei sisällytetä jo olemassa oleviin entiteetteihin tai sitä ei ole saatavilla entiteettinä.",
-        "description": "Syötä sopimuksen hinnat ja perusmaksut.",
         "data": {
           "fixed_price": "Kiinteä hinta / Perushinta (snt/kWh)",
           "spot_sensor": "Pörssisähköanturi (snt/kWh tai €/kWh)",
