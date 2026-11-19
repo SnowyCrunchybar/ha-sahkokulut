@@ -36,7 +36,9 @@ from .calculator import (
     get_transfer_price_cents,
 )
 from .const import (
+    CONF_CALC_MODE,
     CONF_DSO_NAME,
+    CONF_ENERGY_MONTHLY,
     CONF_ENERGY_SENSOR,
     CONF_INCLUDE_MONTHLY_FEES,
     CONF_SOLAR_DEDUCT_FROM_TOTAL,
@@ -49,6 +51,7 @@ from .const import (
     CONF_TARIFF_NAME,
     CONF_TRANSFER_MONTHLY,
     CONF_TRANSFER_SENSOR,
+    MODE_TRANSFER_ONLY,
     SOLAR_OPT_OWN_SELL,
     SOURCE_REALTIME,
 )
@@ -91,13 +94,62 @@ async def async_setup_entry(
     entities: list[SensorEntity] = [
         SahkokulutCurrentPriceSensor(entry, config),
         SahkokulutTransferPriceSensor(entry, config),
+        SahkokulutTransferMonthlyFeeSensor(entry, config),
         SahkokulutTotalCostSensor(hass, entry, config),
     ]
+    if config.get(CONF_CALC_MODE) != MODE_TRANSFER_ONLY:
+        entities.append(SahkokulutEnergyMonthlyFeeSensor(entry, config))
+
     if config.get(CONF_SOLAR_SENSOR) and _is_credit_active(config):
         entities.append(SahkokulutSolarPriceSensor(entry, config))
         entities.append(SahkokulutSolarCreditSensor(hass, entry, config))
 
     async_add_entities(entities)
+
+
+class SahkokulutEnergyMonthlyFeeSensor(SensorEntity):
+    """Sähkösopimuksen kuukausittainen perusmaksu (€/kk)."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Sähkösopimuksen perusmaksu"
+    _attr_native_unit_of_measurement = f"{CURRENCY_EURO}/kk"
+    _attr_device_class = SensorDeviceClass.MONETARY
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_suggested_display_precision = 2
+
+    def __init__(self, entry: ConfigEntry, config: dict[str, Any]) -> None:
+        self._config = config
+        self._attr_unique_id = f"{entry.entry_id}_energy_monthly_fee"
+
+    @property
+    def native_value(self) -> float:
+        return round(float(self._config.get(CONF_ENERGY_MONTHLY, 0.0)), 2)
+
+
+class SahkokulutTransferMonthlyFeeSensor(SensorEntity):
+    """Sähkönsiirron kuukausittainen perusmaksu (€/kk)."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Sähkönsiirron perusmaksu"
+    _attr_native_unit_of_measurement = f"{CURRENCY_EURO}/kk"
+    _attr_device_class = SensorDeviceClass.MONETARY
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_suggested_display_precision = 2
+
+    def __init__(self, entry: ConfigEntry, config: dict[str, Any]) -> None:
+        self._config = config
+        self._attr_unique_id = f"{entry.entry_id}_transfer_monthly_fee"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {
+            "dso_name": self._config.get(CONF_DSO_NAME, ""),
+            "tariff_name": self._config.get(CONF_TARIFF_NAME, ""),
+        }
+
+    @property
+    def native_value(self) -> float:
+        return round(float(self._config.get(CONF_TRANSFER_MONTHLY, 0.0)), 2)
 
 
 class SahkokulutCurrentPriceSensor(SensorEntity):
@@ -427,6 +479,7 @@ class SahkokulutTotalCostSensor(RestoreEntity, SensorEntity):
             "dso_name": self._config.get(CONF_DSO_NAME, ""),
             "tariff_name": self._config.get(CONF_TARIFF_NAME, ""),
             "transfer_monthly": self._config.get(CONF_TRANSFER_MONTHLY, 0.0),
+            "energy_monthly": self._config.get(CONF_ENERGY_MONTHLY, 0.0),
             "solar_monthly_fee": self._config.get(CONF_SOLAR_MONTHLY_FEE, 0.0),
             "last_kwh": self._last_kwh,
             "last_solar_kwh": self._last_solar_kwh,

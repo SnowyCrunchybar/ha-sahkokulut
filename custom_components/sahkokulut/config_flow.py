@@ -490,13 +490,13 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class SahkokulutOptionsFlowHandler(config_entries.OptionsFlow):
-    """Options flow siirtotuotteen, perusmaksujen ja hintojen muokkaamiseen."""
+    """Options flow hintojen, perusmaksujen ja antureiden muokkaamiseen."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         self._config_entry = config_entry
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None):
-        """Näytä ja tallenna asetukset virheettömästi."""
+        """Näytä ja tallenna hinnat, perusmaksut ja anturit."""
         current: dict[str, Any] = {}
         if self._config_entry.data:
             current.update(self._config_entry.data)
@@ -504,7 +504,16 @@ class SahkokulutOptionsFlowHandler(config_entries.OptionsFlow):
             current.update(self._config_entry.options)
 
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            cleaned: dict[str, Any] = dict(user_input)
+            for key in (CONF_ENERGY_SENSOR, CONF_SPOT_SENSOR, CONF_TRANSFER_SENSOR, CONF_SOLAR_SENSOR):
+                if key in cleaned and not cleaned[key]:
+                    cleaned[key] = None
+            return self.async_create_entry(title="", data=cleaned)
+
+        default_energy = str(current.get(CONF_ENERGY_SENSOR) or "")
+        default_spot = str(current.get(CONF_SPOT_SENSOR) or "")
+        default_transfer = str(current.get(CONF_TRANSFER_SENSOR) or "")
+        default_solar = str(current.get(CONF_SOLAR_SENSOR) or "")
 
         fields: dict[Any, Any] = {
             vol.Optional(CONF_DSO_NAME, default=str(current.get(CONF_DSO_NAME) or "")): str,
@@ -525,4 +534,41 @@ class SahkokulutOptionsFlowHandler(config_entries.OptionsFlow):
                 default=bool(current.get(CONF_SOLAR_DEDUCT_FROM_TOTAL, True)),
             ): bool,
         }
+
+        if default_energy:
+            fields[vol.Required(CONF_ENERGY_SENSOR, default=default_energy)] = selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor", device_class="energy")
+            )
+        else:
+            fields[vol.Required(CONF_ENERGY_SENSOR)] = selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor", device_class="energy")
+            )
+
+        if default_spot:
+            fields[vol.Optional(CONF_SPOT_SENSOR, default=default_spot)] = selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor")
+            )
+        else:
+            fields[vol.Optional(CONF_SPOT_SENSOR)] = selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor")
+            )
+
+        if default_transfer:
+            fields[vol.Optional(CONF_TRANSFER_SENSOR, default=default_transfer)] = selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor")
+            )
+        else:
+            fields[vol.Optional(CONF_TRANSFER_SENSOR)] = selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor")
+            )
+
+        if default_solar:
+            fields[vol.Optional(CONF_SOLAR_SENSOR, default=default_solar)] = selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor", device_class="energy")
+            )
+        else:
+            fields[vol.Optional(CONF_SOLAR_SENSOR)] = selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor", device_class="energy")
+            )
+
         return self.async_show_form(step_id="init", data_schema=vol.Schema(fields))

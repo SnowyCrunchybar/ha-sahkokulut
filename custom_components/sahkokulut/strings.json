@@ -62,12 +62,14 @@
       },
       "energy": {
         "title": "Sopimusten hinnat",
+
+        "description": "Syötä sopimuksen hinnat sekä sähkösopimuksen perusmaksu (€/kk), jos sitä ei sisällytetä jo olemassa oleviin entiteetteihin tai sitä ei ole saatavilla entiteettinä.",
         "description": "Syötä sopimuksen hinnat ja perusmaksut.",
         "data": {
           "fixed_price": "Kiinteä hinta / Perushinta (snt/kWh)",
           "spot_sensor": "Pörssisähköanturi (snt/kWh tai €/kWh)",
           "margin": "Välityspalkkio / marginaali (snt/kWh)",
-          "energy_monthly": "Energian perusmaksu (€/kk)"
+          "energy_monthly": "Sähkösopimuksen perusmaksu (€/kk)"
         }
       }
     }
@@ -75,15 +77,15 @@
   "options": {
     "step": {
       "init": {
-        "title": "Muokkaa asetuksia ja hintoja",
-        "description": "Päivitä verkkoyhtiö, siirtotuotteen nimi, kuukausimaksut (€/kk) ja hinnat (snt/kWh).",
+        "title": "Muokkaa asetuksia, hintoja ja antureita",
+        "description": "Päivitä verkkoyhtiö, siirtotuotteen nimi, kuukausimaksut (€/kk, ml. sähkösopimuksen perusmaksu jos se ei tule entiteetistä), hinnat (snt/kWh) sekä käytettävät anturit.",
         "data": {
           "dso_name": "Sähkönsiirtoyhtiö",
           "tariff_name": "Siirtotuotteen nimi",
           "transfer_day": "Siirtohinta (snt/kWh)",
           "transfer_night": "Siirtohinta – yö / muu aika (snt/kWh)",
-          "transfer_monthly": "Perusmaksu (€/kk)",
-          "energy_monthly": "Energian perusmaksu (€/kk)",
+          "transfer_monthly": "Sähkönsiirron perusmaksu (€/kk)",
+          "energy_monthly": "Sähkösopimuksen perusmaksu (€/kk)",
           "solar_monthly_fee": "Vuokrapaneelin kuukausihinta (€/kk)",
           "include_monthly_fees": "Sisällytä perusmaksut kertyneeseen kustannukseen",
           "electricity_tax": "Sähkövero (snt/kWh)",
@@ -91,7 +93,11 @@
           "margin": "Välityspalkkio / marginaali (snt/kWh)",
           "solar_margin": "Aurinkomyynnin välityspalkkio (snt/kWh)",
           "solar_transfer_fee": "Tuotannon siirtomaksu (snt/kWh)",
-          "solar_deduct_total": "Vähennä hyvitys kertyneestä kustannuksesta"
+          "solar_deduct_total": "Vähennä hyvitys kertyneestä kustannuksesta",
+          "energy_sensor": "Kulutusmittari (kWh)",
+          "spot_sensor": "Pörssisähköanturi",
+          "transfer_sensor": "Siirtohinta-anturi",
+          "solar_sensor": "Aurinkoanturi (kWh)"
         }
       }
     }

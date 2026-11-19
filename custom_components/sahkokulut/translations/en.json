@@ -56,18 +56,22 @@
           "day_end": "Daytime end hour (1–24)",
           "saturday_winter": "Count Saturday as winter weekday?",
           "electricity_tax": "Electricity tax (c/kWh)",
-          "transfer_monthly": "Monthly fee (€/month)",
+          "transfer_monthly": "Transfer monthly fee (€/month)",
           "include_monthly_fees": "Include monthly fees in accumulated cost"
         }
       },
       "energy": {
         "title": "Contract prices",
+
+        "description": "Enter contract prices and the electricity contract monthly fee (€/month), if not already included in existing entities or unavailable as an entity.",
+
         "description": "Enter prices and monthly fees for your selected contract.",
+
         "data": {
           "fixed_price": "Fixed price / Base price (c/kWh)",
           "spot_sensor": "Spot sensor (c/kWh or €/kWh)",
           "margin": "Margin / commission (c/kWh)",
-          "energy_monthly": "Energy monthly fee (€/month)"
+          "energy_monthly": "Electricity contract monthly fee (€/month)"
         }
       }
     }
@@ -75,15 +79,15 @@
   "options": {
     "step": {
       "init": {
-        "title": "Edit settings and prices",
-        "description": "Update DSO, tariff name, monthly fees (€/month), and pricing values (c/kWh).",
+        "title": "Edit settings, prices and sensors",
+        "description": "Update DSO, tariff name, monthly fees (€/month), pricing values (c/kWh), and sensors.",
         "data": {
           "dso_name": "Distribution System Operator (DSO)",
           "tariff_name": "Tariff product name",
           "transfer_day": "Transfer price (c/kWh)",
           "transfer_night": "Transfer price – night / other time (c/kWh)",
-          "transfer_monthly": "Monthly fee (€/month)",
-          "energy_monthly": "Energy monthly fee (€/month)",
+          "transfer_monthly": "Transfer monthly fee (€/month)",
+          "energy_monthly": "Electricity contract monthly fee (€/month)",
           "solar_monthly_fee": "Rented panel monthly fee (€/month)",
           "include_monthly_fees": "Include monthly fees in total cost",
           "electricity_tax": "Electricity tax (c/kWh)",
@@ -91,7 +95,11 @@
           "margin": "Margin / commission (c/kWh)",
           "solar_margin": "Solar export margin (c/kWh)",
           "solar_transfer_fee": "Grid production transfer fee (c/kWh)",
-          "solar_deduct_total": "Deduct credit from total cost"
+          "solar_deduct_total": "Deduct credit from total cost",
+          "energy_sensor": "Energy meter (kWh)",
+          "spot_sensor": "Spot sensor",
+          "transfer_sensor": "Transfer sensor",
+          "solar_sensor": "Solar sensor (kWh)"
         }
       }
     }
