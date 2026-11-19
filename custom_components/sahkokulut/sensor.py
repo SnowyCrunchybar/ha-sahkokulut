@@ -40,6 +40,8 @@ from .const import (
     CONF_ENERGY_SENSOR,
     CONF_INCLUDE_MONTHLY_FEES,
     CONF_SOLAR_DEDUCT_FROM_TOTAL,
+    CONF_SOLAR_MONTHLY_FEE,
+    CONF_SOLAR_OPTION,
     CONF_SOLAR_SENSOR,
     CONF_SOLAR_SOURCE_TYPE,
     CONF_SOURCE_TYPE,
@@ -47,6 +49,8 @@ from .const import (
     CONF_TARIFF_NAME,
     CONF_TRANSFER_MONTHLY,
     CONF_TRANSFER_SENSOR,
+    SOLAR_OPT_OWN_SELL,
+    SOLAR_OPT_RENTED,
     SOURCE_REALTIME,
 )
 
@@ -68,6 +72,16 @@ def _read_price_sensor_cents(hass: HomeAssistant, entity_id: str | None) -> floa
         return None
 
 
+def _is_credit_active(config: dict[str, Any]) -> bool:
+    """Tarkista lasketaanko aurinkotuotolle myynti- tai nimikkopaneelihyvitystä."""
+    solar_option = config.get(CONF_SOLAR_OPTION)
+    if solar_option in (SOLAR_OPT_OWN_SELL, SOLAR_OPT_RENTED):
+        return True
+    if solar_option == "own_no_sell":
+        return False
+    return bool(config.get(CONF_SOLAR_DEDUCT_FROM_TOTAL, True))
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -80,7 +94,7 @@ async def async_setup_entry(
         SahkokulutTransferPriceSensor(entry, config),
         SahkokulutTotalCostSensor(hass, entry, config),
     ]
-    if config.get(CONF_SOLAR_SENSOR):
+    if config.get(CONF_SOLAR_SENSOR) and _is_credit_active(config):
         entities.append(SahkokulutSolarPriceSensor(entry, config))
         entities.append(SahkokulutSolarCreditSensor(hass, entry, config))
 
@@ -368,7 +382,11 @@ class SahkokulutTotalCostSensor(RestoreEntity, SensorEntity):
         source_type = self._config.get(CONF_SOURCE_TYPE, SOURCE_REALTIME)
         energy_entity = self._config[CONF_ENERGY_SENSOR]
         solar_entity = self._config.get(CONF_SOLAR_SENSOR)
-        deduct_solar = bool(solar_entity and self._config.get(CONF_SOLAR_DEDUCT_FROM_TOTAL, True))
+        deduct_solar = bool(
+            solar_entity
+            and _is_credit_active(self._config)
+            and self._config.get(CONF_SOLAR_DEDUCT_FROM_TOTAL, True)
+        )
         solar_source = self._config.get(CONF_SOLAR_SOURCE_TYPE, SOURCE_REALTIME)
 
         if source_type == SOURCE_REALTIME:
@@ -410,6 +428,7 @@ class SahkokulutTotalCostSensor(RestoreEntity, SensorEntity):
             "dso_name": self._config.get(CONF_DSO_NAME, ""),
             "tariff_name": self._config.get(CONF_TARIFF_NAME, ""),
             "transfer_monthly": self._config.get(CONF_TRANSFER_MONTHLY, 0.0),
+            "solar_monthly_fee": self._config.get(CONF_SOLAR_MONTHLY_FEE, 0.0),
             "last_kwh": self._last_kwh,
             "last_solar_kwh": self._last_solar_kwh,
             "last_fee_date": self._last_fee_date,
@@ -483,6 +502,7 @@ class SahkokulutTotalCostSensor(RestoreEntity, SensorEntity):
         solar_entity = self._config.get(CONF_SOLAR_SENSOR)
         deduct_solar = bool(
             solar_entity
+            and _is_credit_active(self._config)
             and self._config.get(CONF_SOLAR_DEDUCT_FROM_TOTAL, True)
             and self._config.get(CONF_SOLAR_SOURCE_TYPE) != SOURCE_REALTIME
         )

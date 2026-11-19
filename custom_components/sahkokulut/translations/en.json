@@ -1,26 +1,45 @@
 {
   "config": {
     "step": {
-      "discover": {
-        "title": "Existing electricity integrations detected",
-        "description": "Compatible energy, solar production, transfer, or spot price sensors were found. Would you like to use them?",
+      "user": {
+        "title": "Sähkökulut – What do you want to track?",
+        "description": "Select what you want to track. Check the box below to open extra solar panel options.",
         "data": {
-          "use_discovered": "Use detected sensors automatically",
-          "discovered_energy": "Detected energy meter (kWh)",
-          "discovered_solar": "Detected solar production / export sensor (optional)",
-          "discovered_transfer": "Detected transfer price sensor (optional)",
-          "discovered_spot": "Detected spot/energy price sensor",
-          "calc_mode": "Calculation mode"
+          "follow_mode": "What do you want to track?",
+          "open_solar_options": "Open extra options (solar panels)"
         }
       },
-      "manual_setup": {
-        "title": "Sähkökulut – Basic setup",
-        "description": "Select your energy meter and optional solar sensor.",
+      "sensors": {
+        "title": "Step 2 – Meters and price sensors",
+        "description": "Select your energy meter and optional spot or price sensor.",
         "data": {
+          "discovered_energy": "Detected energy meter (kWh)",
           "energy_sensor": "Energy meter (kWh)",
-          "source_type": "Meter update type",
-          "solar_sensor": "Solar production / export sensor (kWh, optional)",
-          "calc_mode": "Calculation mode"
+          "source_type": "Energy meter update type",
+          "discovered_spot": "Detected spot or price sensor",
+          "spot_sensor": "Select price sensor manually",
+          "discovered_transfer": "Detected transfer price sensor (optional)"
+        }
+      },
+      "solar": {
+        "title": "Step 3 – Solar panels and generation",
+        "description": "Choose your solar or rented/named panel type and solar sensor.",
+        "data": {
+          "solar_option": "Solar panel / generation",
+          "discovered_solar": "Detected solar or rented panel sensor",
+          "solar_sensor": "Select solar sensor manually (kWh)"
+        }
+      },
+      "solar_rented": {
+        "title": "Step 3B – Rented / named solar panel",
+        "description": "Enter monthly fee (€/month) and credit settings for your rented/named panel.",
+        "data": {
+          "solar_monthly_fee": "Panel / rental monthly fee (€/month)",
+          "solar_source_type": "Solar sensor update type",
+          "solar_deduct_total": "Deduct credit directly from total accumulated cost",
+          "solar_margin": "Solar export broker margin (c/kWh)",
+          "solar_transfer_fee": "Grid production transfer fee (c/kWh)",
+          "solar_spot_vat": "Price sensor includes 25.5% VAT (strip VAT for credit)"
         }
       },
       "transfer": {
@@ -42,26 +61,12 @@
       },
       "energy": {
         "title": "Electricity contract prices",
-        "description": "Configure electricity energy pricing.",
+        "description": "Enter prices and monthly fees for your selected contract type.",
         "data": {
-          "contract_type": "Contract type",
           "fixed_price": "Fixed price / Hybrid base price (c/kWh)",
-          "spot_sensor": "Spot price sensor (c/kWh or €/kWh)",
+          "spot_sensor": "Price sensor (c/kWh or €/kWh)",
           "margin": "Margin / commission (c/kWh)",
           "energy_monthly": "Energy monthly fee (€/month)"
-        }
-      },
-      "solar": {
-        "title": "Solar production and export credit",
-        "description": "Configure how solar generation or grid export reduces your electricity costs.",
-        "data": {
-          "solar_mode": "Solar calculation mode",
-          "solar_source_type": "Solar sensor update type",
-          "solar_deduct_total": "Deduct solar credit directly from total accumulated cost",
-          "solar_margin": "Solar export broker margin (c/kWh)",
-          "solar_transfer_fee": "Grid production transfer fee (c/kWh)",
-          "solar_monthly_fee": "Solar monthly fee (€/month)",
-          "solar_spot_vat": "Spot sensor includes 25.5% VAT (strip VAT for export credit)"
         }
       }
     }
@@ -69,8 +74,8 @@
   "options": {
     "step": {
       "init": {
-        "title": "Update tariff product and prices",
-        "description": "Edit DSO, tariff name, and pricing values (c/kWh and €/month).",
+        "title": "Edit settings and prices",
+        "description": "Update DSO, tariff name, monthly fees (€/month), and pricing values (c/kWh).",
         "data": {
           "dso_name": "Distribution System Operator (DSO)",
           "tariff_name": "Tariff product name",
@@ -78,14 +83,14 @@
           "transfer_night": "Transfer price – night / other time (c/kWh)",
           "transfer_monthly": "Transfer monthly fee (€/month)",
           "energy_monthly": "Energy monthly fee (€/month)",
+          "solar_monthly_fee": "Panel / rental monthly fee (€/month)",
           "include_monthly_fees": "Include daily prorated monthly fees in total cost",
           "electricity_tax": "Electricity tax + security of supply fee (c/kWh)",
           "fixed_price": "Fixed price / Hybrid base price (c/kWh)",
-          "margin": "Import margin (c/kWh)",
+          "margin": "Margin / commission (c/kWh)",
           "solar_margin": "Solar export margin (c/kWh)",
           "solar_transfer_fee": "Grid production transfer fee (c/kWh)",
-          "solar_monthly_fee": "Solar monthly fee (€/month)",
-          "solar_deduct_total": "Deduct solar credit from total cost"
+          "solar_deduct_total": "Deduct credit from total cost"
         }
       }
     }
