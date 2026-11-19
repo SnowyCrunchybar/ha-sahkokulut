@@ -60,6 +60,7 @@
           "solar_deduct_total": "Vähennä myyntihyvitys suoraan kertyneestä kokonaiskustannuksesta",
           "solar_margin": "Sähkönmyynnin välityspalkkio (snt/kWh)",
           "solar_transfer_fee": "Verkkoyhtiön tuotannon siirtomaksu (snt/kWh)",
+          "solar_monthly_fee": "Aurinkopaneelin kuukausimaksu (€/kk)",
           "solar_spot_vat": "Hintasensori sisältää ALV 25,5 % (poista ALV myyntihyvityksestä)"
         }
       }
@@ -83,6 +84,7 @@
           "margin": "Ostosähkön marginaali (snt/kWh)",
           "solar_margin": "Aurinkomyynnin välityspalkkio (snt/kWh)",
           "solar_transfer_fee": "Tuotannon siirtomaksu (snt/kWh)",
+          "solar_monthly_fee": "Aurinkopaneelin kuukausimaksu (€/kk)",
           "solar_deduct_total": "Vähennä myyntihyvitys kertyneestä kustannuksesta"
         }
       }

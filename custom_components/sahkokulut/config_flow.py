@@ -25,6 +25,7 @@ from .const import (
     CONF_SOLAR_DEDUCT_FROM_TOTAL,
     CONF_SOLAR_MARGIN,
     CONF_SOLAR_MODE,
+    CONF_SOLAR_MONTHLY_FEE,
     CONF_SOLAR_SENSOR,
     CONF_SOLAR_SOURCE_TYPE,
     CONF_SOLAR_SPOT_VAT_INCLUDED,
@@ -430,6 +431,7 @@ class SahkokulutConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_SOLAR_DEDUCT_FROM_TOTAL, default=True): bool,
                 vol.Optional(CONF_SOLAR_MARGIN, default=0.30): vol.Coerce(float),
                 vol.Optional(CONF_SOLAR_TRANSFER_FEE, default=0.0): vol.Coerce(float),
+                vol.Optional(CONF_SOLAR_MONTHLY_FEE, default=0.0): vol.Coerce(float),
                 vol.Required(CONF_SOLAR_SPOT_VAT_INCLUDED, default=True): bool,
             }
         )
@@ -483,6 +485,10 @@ class SahkokulutOptionsFlowHandler(config_entries.OptionsFlow):
             ): vol.Coerce(float),
             vol.Optional(
                 CONF_SOLAR_TRANSFER_FEE, default=current.get(CONF_SOLAR_TRANSFER_FEE, 0.0)
+            ): vol.Coerce(float),
+            vol.Optional(
+                CONF_SOLAR_MONTHLY_FEE,
+                default=current.get(CONF_SOLAR_MONTHLY_FEE, 0.0),
             ): vol.Coerce(float),
             vol.Optional(
                 CONF_SOLAR_DEDUCT_FROM_TOTAL,

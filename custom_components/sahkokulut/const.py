@@ -49,6 +49,7 @@ SOLAR_MODE_SURPLUS = "surplus_spot"
 SOLAR_MODE_RENTED = "rented_credit"
 CONF_SOLAR_MARGIN = "solar_margin"                   # Myynnin välityspalkkio (snt/kWh)
 CONF_SOLAR_TRANSFER_FEE = "solar_transfer_fee"       # Tuotannon siirtomaksu (snt/kWh)
+CONF_SOLAR_MONTHLY_FEE = "solar_monthly_fee"         # Aurinkopaneelin kuukausimaksu (€/kk)
 CONF_SOLAR_SPOT_VAT_INCLUDED = "solar_spot_vat"      # Poistetaanko 25,5 % ALV spot-hinnasta myyntiin
 CONF_SOLAR_DEDUCT_FROM_TOTAL = "solar_deduct_total"  # Vähennetäänkö hyvitys kertyneestä kustannuksesta
 

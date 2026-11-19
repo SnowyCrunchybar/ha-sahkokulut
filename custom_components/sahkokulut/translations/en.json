@@ -60,6 +60,7 @@
           "solar_deduct_total": "Deduct solar credit directly from total accumulated cost",
           "solar_margin": "Solar export broker margin (c/kWh)",
           "solar_transfer_fee": "Grid production transfer fee (c/kWh)",
+          "solar_monthly_fee": "Solar monthly fee (€/month)",
           "solar_spot_vat": "Spot sensor includes 25.5% VAT (strip VAT for export credit)"
         }
       }
@@ -83,6 +84,7 @@
           "margin": "Import margin (c/kWh)",
           "solar_margin": "Solar export margin (c/kWh)",
           "solar_transfer_fee": "Grid production transfer fee (c/kWh)",
+          "solar_monthly_fee": "Solar monthly fee (€/month)",
           "solar_deduct_total": "Deduct solar credit from total cost"
         }
       }
